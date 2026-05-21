@@ -8,11 +8,10 @@ export default async function CompaniesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: companies } = await supabase
-    .from('companies')
-    .select('*, contacts!inner(id, first_name, last_name, title, phone, email)')
-    .eq('user_id', user.id)
-    .order('name')
+  const { data: prospectos } = await supabase
+    .from('prospectos')
+    .select('*')
+    .order('nombre')
 
-  return <CompaniesClient companies={companies ?? []} userId={user.id} />
+  return <CompaniesClient prospectos={prospectos ?? []} userId={user.id} />
 }
