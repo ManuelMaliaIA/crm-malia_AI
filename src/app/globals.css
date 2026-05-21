@@ -4,14 +4,14 @@
 
 /* ====== Malia AI CRM — Design Tokens ====== */
 :root {
-  /* Fondos — blanco/claro */
-  --bg: #F4F6F9;
-  --surface-1: #FFFFFF;
-  --surface-2: #F0F3F7;
-  --surface-3: #E8ECF2;
-  --border: #DDE3ED;
-  --border-2: #CDD5E3;
-  --border-hi: #B8C4D8;
+  /* Fondos — gris suave, menos agresivo que el blanco puro */
+  --bg: #E8ECF2;
+  --surface-1: #F2F4F8;
+  --surface-2: #E4E8F0;
+  --surface-3: #D8DDE8;
+  --border: #CDD5E3;
+  --border-2: #BEC8D8;
+  --border-hi: #AAB8CC;
   /* Texto */
   --text: #0D1B2A;
   --text-2: #3A5068;
