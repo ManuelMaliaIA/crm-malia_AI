@@ -8,11 +8,11 @@ export default async function ContactsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: contacts } = await supabase
-    .from('contacts')
-    .select('*, companies(name)')
+  const { data: companies } = await supabase
+    .from('companies')
+    .select('*, contacts(id, first_name, last_name, email, phone, title, owner, prospeccion(*))')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  return <ContactsClient contacts={contacts ?? []} userId={user.id} />
+  return <ContactsClient companies={companies ?? []} userId={user.id} />
 }
