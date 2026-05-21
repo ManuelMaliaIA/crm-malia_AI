@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Topbar from '@/components/layout/Topbar'
-import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink, Copy, Check, Trash2 } from 'lucide-react'
+import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink, Copy, Check, Trash2, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -430,12 +430,126 @@ function ProspectoRow({ p, onDelete }: { p: Prospecto; onDelete: (id: number) =>
   )
 }
 
+const EMPTY_FORM = {
+  nombre: '', tipo: '', direccion: '', telefono: '', email: '', web: '',
+  ciudad: '', cp: '', nicho: '', dueno_nombre: '', dueno_telefono: '', dueno_email: '', nota: '',
+}
+
+function NuevoContactoModal({ onClose, onCreated }: { onClose: () => void; onCreated: (p: Prospecto) => void }) {
+  const [form, setForm] = useState(EMPTY_FORM)
+  const [saving, setSaving] = useState(false)
+
+  function field(key: keyof typeof EMPTY_FORM, label: string, required = false) {
+    return (
+      <div>
+        <label style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
+          {label}{required && <span style={{ color: '#e87171' }}> *</span>}
+        </label>
+        <input
+          value={form[key]}
+          onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+          style={{
+            width: '100%', padding: '7px 10px', borderRadius: 7, fontSize: 13,
+            border: '1px solid var(--border-2)', background: 'var(--surface-1)',
+            color: 'var(--text)', outline: 'none',
+          }}
+        />
+      </div>
+    )
+  }
+
+  async function handleSave() {
+    if (!form.nombre.trim()) return
+    setSaving(true)
+    const sb = createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (sb as any).from('prospectos').insert({
+      nombre: form.nombre.trim(),
+      tipo: form.tipo || null,
+      direccion: form.direccion || null,
+      telefono: form.telefono || null,
+      email: form.email || null,
+      web: form.web || null,
+      ciudad: form.ciudad || null,
+      cp: form.cp || null,
+      nicho: form.nicho || null,
+      dueno_nombre: form.dueno_nombre || null,
+      dueno_telefono: form.dueno_telefono || null,
+      dueno_email: form.dueno_email || null,
+      nota: form.nota || null,
+      fecha_prospeccion: new Date().toISOString().split('T')[0],
+    }).select().single()
+    setSaving(false)
+    if (!error && data) { onCreated(data as Prospecto); onClose() }
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+    }} onClick={onClose}>
+      <div style={{
+        background: 'var(--surface-1)', borderRadius: 14, padding: 28, width: '100%', maxWidth: 620,
+        border: '1px solid var(--border-2)', boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+        maxHeight: '90vh', overflowY: 'auto',
+      }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>Nuevo contacto</div>
+          <button onClick={onClose} style={{ color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>✕</button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div style={{ gridColumn: '1/-1' }}>{field('nombre', 'Nombre del negocio', true)}</div>
+          {field('tipo', 'Tipo')}
+          {field('nicho', 'Nicho')}
+          <div style={{ gridColumn: '1/-1' }}>{field('direccion', 'Dirección')}</div>
+          {field('telefono', 'Teléfono')}
+          {field('email', 'Email')}
+          {field('web', 'Web')}
+          {field('ciudad', 'Ciudad')}
+          {field('cp', 'Código postal')}
+
+          <div style={{ gridColumn: '1/-1', borderTop: '1px solid var(--border)', paddingTop: 14, fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Propietario</div>
+          {field('dueno_nombre', 'Nombre')}
+          {field('dueno_telefono', 'Teléfono')}
+          <div style={{ gridColumn: '1/-1' }}>{field('dueno_email', 'Email')}</div>
+          <div style={{ gridColumn: '1/-1' }}>
+            <label style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Nota</label>
+            <textarea
+              value={form.nota}
+              onChange={e => setForm(f => ({ ...f, nota: e.target.value }))}
+              rows={3}
+              style={{
+                width: '100%', padding: '7px 10px', borderRadius: 7, fontSize: 13,
+                border: '1px solid var(--border-2)', background: 'var(--surface-1)',
+                color: 'var(--text)', outline: 'none', resize: 'vertical',
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
+          <button onClick={onClose} className="btn-ghost">Cancelar</button>
+          <button onClick={handleSave} disabled={saving || !form.nombre.trim()} className="btn-primary">
+            {saving ? 'Guardando…' : 'Crear contacto'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ContactsClient({ prospectos: initial }: { prospectos: Prospecto[]; userId: string }) {
   const [prospectos, setProspectos] = useState(initial)
   const [search, setSearch] = useState('')
+  const [showModal, setShowModal] = useState(false)
 
   function handleDelete(id: number) {
     setProspectos(prev => prev.filter(p => p.id !== id))
+  }
+
+  function handleCreated(p: Prospecto) {
+    setProspectos(prev => [p, ...prev])
   }
 
   const filtered = prospectos.filter(p =>
@@ -448,21 +562,29 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
 
   return (
     <>
+      {showModal && <NuevoContactoModal onClose={() => setShowModal(false)} onCreated={handleCreated} />}
       <Topbar
         title="Contactos"
         subtitle={`${prospectos.length} negocios prospectados`}
-
         showSearch
         searchPlaceholder="Buscar por nombre, tipo, ciudad…"
         onSearch={setSearch}
+        actions={
+          <button className="btn-primary" onClick={() => setShowModal(true)}>
+            <Plus size={14} strokeWidth={2.5} /> Nuevo contacto
+          </button>
+        }
       />
       <div className="page-scroller">
         <div className="page-body">
           {filtered.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon"><Building2 size={24} /></div>
-              <div className="empty-title">Sin resultados</div>
-              <p className="empty-sub">No hay negocios que coincidan con la búsqueda</p>
+              <div className="empty-title">Sin contactos</div>
+              <p className="empty-sub">Crea tu primer contacto o importa desde el kit de prospección</p>
+              <button className="btn-primary" style={{ marginTop: 16 }} onClick={() => setShowModal(true)}>
+                <Plus size={14} /> Nuevo contacto
+              </button>
             </div>
           ) : (
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -475,7 +597,7 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Web</th>
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Ciudad</th>
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score</th>
-                    <th style={{ width: 30 }} />
+                    <th style={{ width: 60 }} />
                   </tr>
                 </thead>
                 <tbody>
