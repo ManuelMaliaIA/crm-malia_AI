@@ -4,29 +4,29 @@
 
 /* ====== Malia AI CRM — Design Tokens ====== */
 :root {
-  /* Fondos — navy oscuro como la landing */
-  --bg: #0B1624;
-  --surface-1: #0F2030;
-  --surface-2: #142840;
-  --surface-3: #1A3350;
-  --border: #1E3C5E;
-  --border-2: #24476E;
-  --border-hi: #2C5480;
+  /* Fondos — blanco/claro */
+  --bg: #F4F6F9;
+  --surface-1: #FFFFFF;
+  --surface-2: #F0F3F7;
+  --surface-3: #E8ECF2;
+  --border: #DDE3ED;
+  --border-2: #CDD5E3;
+  --border-hi: #B8C4D8;
   /* Texto */
-  --text: #EEF4FF;
-  --text-2: #8AABCC;
-  --text-3: #4A6A8A;
-  --text-4: #2A4A6A;
+  --text: #0D1B2A;
+  --text-2: #3A5068;
+  --text-3: #6A85A0;
+  --text-4: #9BB0C4;
   /* Acento naranja — igual que la landing */
   --gold: #E8963C;
-  --gold-soft: rgba(232, 150, 60, 0.12);
-  --gold-mid: rgba(232, 150, 60, 0.22);
+  --gold-soft: rgba(232, 150, 60, 0.10);
+  --gold-mid: rgba(232, 150, 60, 0.20);
   --gold-dim: rgba(232, 150, 60, 0.5);
   /* Azul navy de la landing */
   --blue: #0A4B78;
   --blue-hi: #1A6FAA;
-  --neg: #e87171;
-  --neg-soft: rgba(232, 113, 113, 0.12);
+  --neg: #dc4f4f;
+  --neg-soft: rgba(220, 79, 79, 0.10);
   --radius: 10px;
   --radius-lg: 14px;
   --radius-sm: 6px;
@@ -98,7 +98,7 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   padding: 9px 12px;
   border-radius: 8px;
   transition: transform .08s ease, filter .15s ease;
-  box-shadow: 0 0 0 1px rgba(79,142,247,0.35) inset, 0 8px 18px -8px rgba(79,142,247,0.45);
+  box-shadow: 0 8px 18px -8px rgba(232,150,60,0.4);
   width: 100%;
 }
 .new-btn:hover { filter: brightness(1.1); }
@@ -273,53 +273,41 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   overflow: hidden;
 }
 
-/* Revenue — naranja (acento landing) */
+/* Revenue — naranja */
 .kpi.kpi-teal {
-  background: linear-gradient(135deg, #2A1A08 0%, #1C1005 100%);
-  border-color: rgba(232,150,60,0.3);
-  box-shadow: 0 30px 80px -30px rgba(232,150,60,0.18);
-}
-.kpi.kpi-teal::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232,150,60,0.6), transparent);
+  background: #FFFFFF;
+  border-color: rgba(232,150,60,0.4);
+  border-top: 3px solid #E8963C;
+  box-shadow: 0 4px 16px rgba(232,150,60,0.10);
 }
 .kpi.kpi-teal .kpi-value { color: #E8963C; }
 
-/* Deals — azul */
+/* Deals — azul navy */
 .kpi.kpi-blue {
-  background: linear-gradient(135deg, #0D1E3C 0%, #091428 100%);
-  border-color: rgba(59,130,246,0.3);
-  box-shadow: 0 30px 80px -30px rgba(59,130,246,0.2);
+  background: #FFFFFF;
+  border-color: rgba(10,75,120,0.3);
+  border-top: 3px solid #0A4B78;
+  box-shadow: 0 4px 16px rgba(10,75,120,0.08);
 }
-.kpi.kpi-blue::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(59,130,246,0.6), transparent);
-}
-.kpi.kpi-blue .kpi-value { color: #3B82F6; }
+.kpi.kpi-blue .kpi-value { color: #0A4B78; }
 
-/* Tasa — violeta */
+/* Tasa — teal */
 .kpi.kpi-purple {
-  background: linear-gradient(135deg, #1A1535 0%, #110E26 100%);
-  border-color: rgba(139,92,246,0.3);
-  box-shadow: 0 30px 80px -30px rgba(139,92,246,0.2);
+  background: #FFFFFF;
+  border-color: rgba(14,140,120,0.3);
+  border-top: 3px solid #0E8C78;
+  box-shadow: 0 4px 16px rgba(14,140,120,0.08);
 }
-.kpi.kpi-purple::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.6), transparent);
-}
-.kpi.kpi-purple .kpi-value { color: #8B5CF6; }
+.kpi.kpi-purple .kpi-value { color: #0E8C78; }
 
-/* Contactos — ámbar */
+/* Contactos — azul medio */
 .kpi.kpi-amber {
-  background: linear-gradient(135deg, #2A1E0A 0%, #1C1407 100%);
-  border-color: rgba(245,158,11,0.3);
-  box-shadow: 0 30px 80px -30px rgba(245,158,11,0.2);
+  background: #FFFFFF;
+  border-color: rgba(26,111,170,0.3);
+  border-top: 3px solid #1A6FAA;
+  box-shadow: 0 4px 16px rgba(26,111,170,0.08);
 }
-.kpi.kpi-amber::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(245,158,11,0.6), transparent);
-}
-.kpi.kpi-amber .kpi-value { color: #F59E0B; }
+.kpi.kpi-amber .kpi-value { color: #1A6FAA; }
 
 .kpi-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .kpi-label { font-size: 11.5px; color: var(--text-3); letter-spacing: 0.02em; text-transform: uppercase; font-weight: 500; }

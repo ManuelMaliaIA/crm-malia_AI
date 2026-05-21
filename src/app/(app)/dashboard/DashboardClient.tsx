@@ -111,7 +111,7 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
             <div className="kpi kpi-blue">
               <div className="kpi-head">
                 <span className="kpi-label">Deals activos</span>
-                <Briefcase size={15} color="#3B82F6" />
+                <Briefcase size={15} color="#0A4B78" />
               </div>
               <div className="kpi-value">{activeDeals.length}</div>
               <div className="kpi-sub">{fmt(activeDeals.reduce((s, d) => s + Number(d.value), 0))} en pipeline</div>
@@ -120,7 +120,7 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
             <div className="kpi kpi-purple">
               <div className="kpi-head">
                 <span className="kpi-label">Tasa de cierre</span>
-                <Target size={15} color="#8B5CF6" />
+                <Target size={15} color="#0E8C78" />
               </div>
               <div className="kpi-value">{winRate}%</div>
               <div className="kpi-sub">{wonDeals.length} de {deals.length} deals</div>
@@ -129,7 +129,7 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
             <div className="kpi kpi-amber">
               <div className="kpi-head">
                 <span className="kpi-label">Contactos</span>
-                <Users size={15} color="#F59E0B" />
+                <Users size={15} color="#1A6FAA" />
               </div>
               <div className="kpi-value">{contacts.length}</div>
               <div className="kpi-sub">{contacts.filter(c => c.status === 'customer').length} clientes activos</div>
@@ -307,8 +307,8 @@ function RevenueChart({ months, values }: { months: string[]; values: number[] }
         const y = PAD.top + innerH - t * innerH
         return (
           <g key={t}>
-            <line x1={PAD.left} x2={W - PAD.right} y1={y} y2={y} stroke="#2A3A52" strokeWidth="1" />
-            <text x={PAD.left - 8} y={y + 4} textAnchor="end" fontSize="10" fill="#4A6A8A" fontFamily="Inter">
+            <line x1={PAD.left} x2={W - PAD.right} y1={y} y2={y} stroke="#DDE3ED" strokeWidth="1" />
+            <text x={PAD.left - 8} y={y + 4} textAnchor="end" fontSize="10" fill="#6A85A0" fontFamily="Inter">
               {t === 0 ? '$0' : fmt(max * t)}
             </text>
           </g>
@@ -326,7 +326,7 @@ function RevenueChart({ months, values }: { months: string[]; values: number[] }
       {months.map((m, i) => {
         const x = PAD.left + (i / (months.length - 1)) * innerW
         return (
-          <text key={i} x={x} y={H - 4} textAnchor="middle" fontSize="10" fill="#8a8a8a" fontFamily="Inter">
+          <text key={i} x={x} y={H - 4} textAnchor="middle" fontSize="10" fill="#6A85A0" fontFamily="Inter">
             {m}
           </text>
         )
