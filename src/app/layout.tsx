@@ -10,7 +10,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Apex CRM — AI Agency',
+  title: 'Malia AI CRM',
   description: 'CRM premium para agencias de inteligencia artificial',
 }
 

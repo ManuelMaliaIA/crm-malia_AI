@@ -28,10 +28,10 @@ export default function Sidebar({ userEmail }: SidebarProps) {
       {/* Brand */}
       <div className="brand">
         <div className="brand-mark">
-          <Zap size={16} color="#FAC51C" strokeWidth={2.5} />
+          <Zap size={16} color="#4F8EF7" strokeWidth={2.5} />
         </div>
         <div>
-          <div className="brand-name">Apex CRM</div>
+          <div className="brand-name">Malia AI CRM</div>
           <div className="brand-sub">AI Agency</div>
         </div>
       </div>
