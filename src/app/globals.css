@@ -4,25 +4,25 @@
 
 /* ====== Malia AI CRM — Design Tokens ====== */
 :root {
-  /* Fondos — slate oscuro pero legible */
-  --bg: #111827;
-  --surface-1: #1C2536;
-  --surface-2: #222E42;
-  --surface-3: #29374E;
-  --border: #2A3A52;
-  --border-2: #334560;
-  --border-hi: #3D5272;
+  /* Fondos — navy oscuro como la landing */
+  --bg: #0B1624;
+  --surface-1: #0F2030;
+  --surface-2: #142840;
+  --surface-3: #1A3350;
+  --border: #1E3C5E;
+  --border-2: #24476E;
+  --border-hi: #2C5480;
   /* Texto */
   --text: #EEF4FF;
   --text-2: #8AABCC;
   --text-3: #4A6A8A;
   --text-4: #2A4A6A;
-  /* Acento principal — teal de la landing */
-  --gold: #2A9D8F;
-  --gold-soft: rgba(42, 157, 143, 0.12);
-  --gold-mid: rgba(42, 157, 143, 0.22);
-  --gold-dim: rgba(42, 157, 143, 0.5);
-  /* Acento azul — landing primary */
+  /* Acento naranja — igual que la landing */
+  --gold: #E8963C;
+  --gold-soft: rgba(232, 150, 60, 0.12);
+  --gold-mid: rgba(232, 150, 60, 0.22);
+  --gold-dim: rgba(232, 150, 60, 0.5);
+  /* Azul navy de la landing */
   --blue: #0A4B78;
   --blue-hi: #1A6FAA;
   --neg: #e87171;
@@ -273,17 +273,17 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   overflow: hidden;
 }
 
-/* Revenue — teal */
+/* Revenue — naranja (acento landing) */
 .kpi.kpi-teal {
-  background: linear-gradient(135deg, #0D2E2A 0%, #081F1C 100%);
-  border-color: rgba(42,157,143,0.3);
-  box-shadow: 0 30px 80px -30px rgba(42,157,143,0.2);
+  background: linear-gradient(135deg, #2A1A08 0%, #1C1005 100%);
+  border-color: rgba(232,150,60,0.3);
+  box-shadow: 0 30px 80px -30px rgba(232,150,60,0.18);
 }
 .kpi.kpi-teal::before {
   content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(42,157,143,0.6), transparent);
+  background: linear-gradient(90deg, transparent, rgba(232,150,60,0.6), transparent);
 }
-.kpi.kpi-teal .kpi-value { color: #2A9D8F; }
+.kpi.kpi-teal .kpi-value { color: #E8963C; }
 
 /* Deals — azul */
 .kpi.kpi-blue {

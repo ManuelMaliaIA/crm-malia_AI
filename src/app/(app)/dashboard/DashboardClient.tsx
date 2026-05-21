@@ -34,7 +34,7 @@ function SparkLine({ values }: { values: number[] }) {
       <polyline
         points={pts.join(' ')}
         fill="none"
-        stroke="#2A9D8F"
+        stroke="#E8963C"
         strokeWidth="2.5"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -298,8 +298,8 @@ function RevenueChart({ months, values }: { months: string[]; values: number[] }
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 180 }}>
       <defs>
         <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2A9D8F" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="#2A9D8F" stopOpacity="0" />
+          <stop offset="0%" stopColor="#E8963C" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#E8963C" stopOpacity="0" />
         </linearGradient>
       </defs>
       {/* Y gridlines */}
@@ -317,10 +317,10 @@ function RevenueChart({ months, values }: { months: string[]; values: number[] }
       {/* Area */}
       {area && <path d={area} fill="url(#areaGrad)" />}
       {/* Line */}
-      {path && <path d={path} fill="none" stroke="#2A9D8F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
+      {path && <path d={path} fill="none" stroke="#E8963C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
       {/* Points */}
       {pts.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="3.5" fill="#2A9D8F" />
+        <circle key={i} cx={x} cy={y} r="3.5" fill="#E8963C" />
       ))}
       {/* X labels */}
       {months.map((m, i) => {
