@@ -539,10 +539,13 @@ function NuevoContactoModal({ onClose, onCreated }: { onClose: () => void; onCre
   )
 }
 
+type ScoreFilter = 'todos' | 'alto' | 'medio' | 'bajo' | 'sin_score'
+
 export default function ContactsClient({ prospectos: initial }: { prospectos: Prospecto[]; userId: string }) {
   const [prospectos, setProspectos] = useState(initial)
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('todos')
 
   function handleDelete(id: number) {
     setProspectos(prev => prev.filter(p => p.id !== id))
@@ -552,13 +555,20 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
     setProspectos(prev => [p, ...prev])
   }
 
-  const filtered = prospectos.filter(p =>
-    !search ||
-    p.nombre.toLowerCase().includes(search.toLowerCase()) ||
-    p.ciudad?.toLowerCase().includes(search.toLowerCase()) ||
-    p.tipo?.toLowerCase().includes(search.toLowerCase()) ||
-    p.direccion?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = prospectos.filter(p => {
+    if (search && !(
+      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      p.ciudad?.toLowerCase().includes(search.toLowerCase()) ||
+      p.tipo?.toLowerCase().includes(search.toLowerCase()) ||
+      p.direccion?.toLowerCase().includes(search.toLowerCase())
+    )) return false
+
+    if (scoreFilter === 'alto') return p.score != null && p.score >= 70
+    if (scoreFilter === 'medio') return p.score != null && p.score >= 40 && p.score < 70
+    if (scoreFilter === 'bajo') return p.score != null && p.score < 40
+    if (scoreFilter === 'sin_score') return p.score == null
+    return true
+  })
 
   return (
     <>
@@ -577,6 +587,42 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
       />
       <div className="page-scroller">
         <div className="page-body">
+
+          {/* Filtros de score */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+            {([
+              { key: 'todos',     label: 'Todos',       color: 'var(--text-2)' },
+              { key: 'alto',      label: '🟢 Score alto (≥70)',  color: '#0E8C78' },
+              { key: 'medio',     label: '🟠 Score medio (40–69)', color: '#E8963C' },
+              { key: 'bajo',      label: '🔴 Score bajo (<40)',   color: '#e87171' },
+              { key: 'sin_score', label: 'Sin score',    color: 'var(--text-3)' },
+            ] as { key: ScoreFilter; label: string; color: string }[]).map(f => (
+              <button
+                key={f.key}
+                onClick={() => setScoreFilter(f.key)}
+                style={{
+                  fontSize: 12, fontWeight: 500, padding: '5px 14px', borderRadius: 99,
+                  border: `1px solid ${scoreFilter === f.key ? f.color : 'var(--border-2)'}`,
+                  background: scoreFilter === f.key ? `${f.color}18` : 'var(--surface-1)',
+                  color: scoreFilter === f.key ? f.color : 'var(--text-3)',
+                  cursor: 'pointer', transition: 'all .15s ease',
+                }}
+              >
+                {f.label}
+                {f.key !== 'todos' && (
+                  <span style={{ marginLeft: 6, opacity: 0.7 }}>
+                    ({prospectos.filter(p =>
+                      f.key === 'alto' ? (p.score != null && p.score >= 70) :
+                      f.key === 'medio' ? (p.score != null && p.score >= 40 && p.score < 70) :
+                      f.key === 'bajo' ? (p.score != null && p.score < 40) :
+                      p.score == null
+                    ).length})
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
           {filtered.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon"><Building2 size={24} /></div>
