@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Topbar from '@/components/layout/Topbar'
-import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink, Copy, Check } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -34,6 +34,7 @@ type Prospecto = {
   tiene_web: boolean | null
   tiene_reservas: boolean | null
   problemas: string[] | null
+  icebreak: string | null
 }
 
 function initials(name: string) {
@@ -66,6 +67,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function ProspectoRow({ p }: { p: Prospecto }) {
   const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  function copyIcebreak() {
+    if (!p.icebreak) return
+    navigator.clipboard.writeText(p.icebreak)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const redesLinks = p.redes
     ? p.redes.split(',').map(r => r.trim()).filter(Boolean)
@@ -349,6 +358,36 @@ function ProspectoRow({ p }: { p: Prospecto }) {
                       {format(parseISO(p.fecha_prospeccion), "d 'de' MMMM, yyyy", { locale: es })}
                     </span>
                   </InfoItem>
+                )}
+
+                {/* Icebreak */}
+                {p.icebreak && (
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <Label>Mensaje de apertura</Label>
+                      <button
+                        onClick={copyIcebreak}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 4,
+                          fontSize: 11, fontWeight: 600, padding: '3px 10px',
+                          borderRadius: 6, border: '1px solid var(--border-2)',
+                          background: copied ? 'rgba(14,140,120,0.1)' : 'var(--surface-2)',
+                          color: copied ? '#0E8C78' : 'var(--text-2)',
+                          cursor: 'pointer', transition: 'all .15s ease',
+                        }}
+                      >
+                        {copied ? <><Check size={11} /> Copiado</> : <><Copy size={11} /> Copiar</>}
+                      </button>
+                    </div>
+                    <div style={{
+                      fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6,
+                      background: 'var(--surface-2)', borderRadius: 8,
+                      padding: '10px 14px', borderLeft: '3px solid var(--gold)',
+                      fontStyle: 'italic',
+                    }}>
+                      {p.icebreak}
+                    </div>
+                  </div>
                 )}
               </Section>
 
