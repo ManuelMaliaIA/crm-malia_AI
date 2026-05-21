@@ -4,21 +4,27 @@
 
 /* ====== Malia AI CRM — Design Tokens ====== */
 :root {
-  --bg: #07090F;
-  --surface-1: #0E1118;
-  --surface-2: #151A25;
-  --surface-3: #1C2230;
-  --border: #1E2840;
-  --border-2: #243050;
-  --border-hi: #2E3D60;
-  --text: #EEF2FF;
-  --text-2: #94A3C4;
-  --text-3: #5A6F94;
-  --text-4: #3A4F6E;
-  --gold: #4F8EF7;
-  --gold-soft: rgba(79, 142, 247, 0.12);
-  --gold-mid: rgba(79, 142, 247, 0.22);
-  --gold-dim: rgba(79, 142, 247, 0.5);
+  /* Fondos — navy oscuro derivado de la paleta de marca */
+  --bg: #060C16;
+  --surface-1: #09111E;
+  --surface-2: #0D1828;
+  --surface-3: #122033;
+  --border: #162C4A;
+  --border-2: #1B3558;
+  --border-hi: #224268;
+  /* Texto */
+  --text: #EEF4FF;
+  --text-2: #8AABCC;
+  --text-3: #4A7A9B;
+  --text-4: #2A5A7A;
+  /* Acento principal — teal de la landing (#2A9D8F) */
+  --gold: #2A9D8F;
+  --gold-soft: rgba(42, 157, 143, 0.12);
+  --gold-mid: rgba(42, 157, 143, 0.22);
+  --gold-dim: rgba(42, 157, 143, 0.5);
+  /* Acento secundario — azul marino de la landing (#0A4B78) */
+  --blue: #0A4B78;
+  --blue-hi: #1A6FAA;
   --neg: #e87171;
   --neg-soft: rgba(232, 113, 113, 0.12);
   --radius: 10px;
