@@ -28,6 +28,12 @@ type Prospecto = {
   nicho: string | null
   fecha_prospeccion: string | null
   created_at: string
+  score: number | null
+  nivel_oportunidad: string | null
+  nivel_digital: string | null
+  tiene_web: boolean | null
+  tiene_reservas: boolean | null
+  problemas: string[] | null
 }
 
 function initials(name: string) {
@@ -115,6 +121,18 @@ function ProspectoRow({ p }: { p: Prospecto }) {
           <span style={{ fontSize: 12.5, color: 'var(--text-2)' }}>{p.ciudad ?? '—'}</span>
         </td>
 
+        {/* Score */}
+        <td style={{ padding: '12px 8px', minWidth: 70 }}>
+          {p.score != null ? (
+            <span style={{
+              fontSize: 12, fontWeight: 700,
+              color: p.score >= 70 ? '#0E8C78' : p.score >= 40 ? '#E8963C' : '#e87171'
+            }}>
+              {p.score}/100
+            </span>
+          ) : <span style={{ fontSize: 12, color: 'var(--text-4)' }}>—</span>}
+        </td>
+
         {/* Chevron */}
         <td style={{ padding: '12px 16px 12px 8px', width: 30 }}>
           <div style={{ color: 'var(--text-3)' }}>
@@ -126,7 +144,7 @@ function ProspectoRow({ p }: { p: Prospecto }) {
       {/* Panel expandido */}
       {open && (
         <tr style={{ background: 'var(--surface-1)', borderBottom: '1px solid var(--border)' }}>
-          <td colSpan={7} style={{ padding: '20px 24px' }}>
+          <td colSpan={8} style={{ padding: '20px 24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 28 }}>
 
               {/* Negocio */}
@@ -233,18 +251,95 @@ function ProspectoRow({ p }: { p: Prospecto }) {
                 )}
               </Section>
 
-              {/* Más info */}
-              <Section title="Detalles">
+              {/* Análisis */}
+              <Section title="Análisis">
+                {/* Score */}
+                {p.score != null && (
+                  <div>
+                    <Label>Score</Label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
+                      <div style={{ flex: 1, height: 6, background: 'var(--border)', borderRadius: 99, overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%', borderRadius: 99,
+                          width: `${p.score}%`,
+                          background: p.score >= 70 ? '#0E8C78' : p.score >= 40 ? '#E8963C' : '#e87171',
+                          transition: 'width .4s ease'
+                        }} />
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: p.score >= 70 ? '#0E8C78' : p.score >= 40 ? '#E8963C' : '#e87171', minWidth: 32 }}>
+                        {p.score}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Nivel oportunidad */}
+                {p.nivel_oportunidad && (
+                  <div>
+                    <Label>Oportunidad</Label>
+                    <span style={{
+                      display: 'inline-block', marginTop: 3,
+                      fontSize: 11.5, fontWeight: 600, padding: '2px 10px', borderRadius: 99,
+                      background: p.nivel_oportunidad === 'alta' ? 'rgba(14,140,120,0.12)' : p.nivel_oportunidad === 'media' ? 'rgba(232,150,60,0.12)' : 'rgba(232,113,113,0.12)',
+                      color: p.nivel_oportunidad === 'alta' ? '#0E8C78' : p.nivel_oportunidad === 'media' ? '#E8963C' : '#e87171',
+                      textTransform: 'capitalize'
+                    }}>
+                      {p.nivel_oportunidad}
+                    </span>
+                  </div>
+                )}
+
+                {/* Nivel digital */}
+                {p.nivel_digital && (
+                  <InfoItem icon={<Globe size={13} />}>
+                    <Label>Presencia digital</Label>
+                    <span style={{ fontSize: 13, color: 'var(--text-2)', textTransform: 'capitalize' }}>{p.nivel_digital}</span>
+                  </InfoItem>
+                )}
+
+                {/* Badges tiene_web / tiene_reservas */}
+                {(p.tiene_web != null || p.tiene_reservas != null) && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {p.tiene_web != null && (
+                      <span style={{
+                        fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
+                        background: p.tiene_web ? 'rgba(14,140,120,0.1)' : 'rgba(232,113,113,0.1)',
+                        color: p.tiene_web ? '#0E8C78' : '#e87171'
+                      }}>
+                        {p.tiene_web ? '✓ Tiene web' : '✗ Sin web'}
+                      </span>
+                    )}
+                    {p.tiene_reservas != null && (
+                      <span style={{
+                        fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500,
+                        background: p.tiene_reservas ? 'rgba(14,140,120,0.1)' : 'rgba(232,113,113,0.1)',
+                        color: p.tiene_reservas ? '#0E8C78' : '#e87171'
+                      }}>
+                        {p.tiene_reservas ? '✓ Reservas online' : '✗ Sin reservas'}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Problemas */}
+                {p.problemas && p.problemas.length > 0 && (
+                  <div>
+                    <Label>Problemas detectados</Label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4 }}>
+                      {p.problemas.map((pr, i) => (
+                        <span key={i} style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+                          <span style={{ color: '#e87171', flexShrink: 0 }}>·</span> {pr}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Detalles extras */}
                 {p.nicho && (
                   <InfoItem icon={<Building2 size={13} />}>
                     <Label>Nicho</Label>
                     <span style={{ fontSize: 13, color: 'var(--text-2)', textTransform: 'capitalize' }}>{p.nicho}</span>
-                  </InfoItem>
-                )}
-                {p.ciudad && (
-                  <InfoItem icon={<MapPin size={13} />}>
-                    <Label>Ciudad</Label>
-                    <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{p.ciudad}{p.cp ? ` (${p.cp})` : ''}</span>
                   </InfoItem>
                 )}
                 {p.fecha_prospeccion && (
@@ -303,6 +398,7 @@ export default function ContactsClient({ prospectos }: { prospectos: Prospecto[]
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Teléfono</th>
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Web</th>
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Ciudad</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score</th>
                     <th style={{ width: 30 }} />
                   </tr>
                 </thead>
