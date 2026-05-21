@@ -176,6 +176,84 @@ export interface Database {
         }
         Relationships: []
       }
+      prospeccion: {
+        Row: {
+          id: string
+          created_at: string
+          contact_id: string | null
+          user_id: string
+          tipo: string | null
+          direccion: string | null
+          telefono_local: string | null
+          email_local: string | null
+          web: string | null
+          redes_sociales: string[] | null
+          nombre_dueno: string | null
+          telefono_dueno: string | null
+          email_dueno: string | null
+          score: number | null
+          nivel_oportunidad: string | null
+          nivel_digital: string | null
+          tiene_web: boolean
+          tiene_reservas: boolean
+          problemas: string[] | null
+          ciudad: string | null
+          nicho: string | null
+          fecha_prospeccion: string | null
+          fuentes: Record<string, string> | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          contact_id?: string | null
+          user_id: string
+          tipo?: string | null
+          direccion?: string | null
+          telefono_local?: string | null
+          email_local?: string | null
+          web?: string | null
+          redes_sociales?: string[] | null
+          nombre_dueno?: string | null
+          telefono_dueno?: string | null
+          email_dueno?: string | null
+          score?: number | null
+          nivel_oportunidad?: string | null
+          nivel_digital?: string | null
+          tiene_web?: boolean
+          tiene_reservas?: boolean
+          problemas?: string[] | null
+          ciudad?: string | null
+          nicho?: string | null
+          fecha_prospeccion?: string | null
+          fuentes?: Record<string, string> | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          contact_id?: string | null
+          user_id?: string
+          tipo?: string | null
+          direccion?: string | null
+          telefono_local?: string | null
+          email_local?: string | null
+          web?: string | null
+          redes_sociales?: string[] | null
+          nombre_dueno?: string | null
+          telefono_dueno?: string | null
+          email_dueno?: string | null
+          score?: number | null
+          nivel_oportunidad?: string | null
+          nivel_digital?: string | null
+          tiene_web?: boolean
+          tiene_reservas?: boolean
+          problemas?: string[] | null
+          ciudad?: string | null
+          nicho?: string | null
+          fecha_prospeccion?: string | null
+          fuentes?: Record<string, string> | null
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -192,3 +270,4 @@ export type Company = Database['public']['Tables']['companies']['Row']
 export type Contact = Database['public']['Tables']['contacts']['Row']
 export type Deal = Database['public']['Tables']['deals']['Row']
 export type Activity = Database['public']['Tables']['activities']['Row']
+export type Prospeccion = Database['public']['Tables']['prospeccion']['Row']

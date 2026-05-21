@@ -10,6 +10,7 @@ const supabase = createClient<Database>(
 
 interface ProspectPayload {
   nombre: string
+  tipo?: string
   direccion?: string
   telefono_local?: string
   email_local?: string
@@ -20,9 +21,14 @@ interface ProspectPayload {
   email_dueno?: string
   score?: number
   nivel_oportunidad?: string
+  nivel_digital?: string
+  tiene_web?: boolean
+  tiene_reservas?: boolean
   problemas?: string[]
   nicho?: string
   ciudad?: string
+  fecha_prospeccion?: string
+  fuentes?: Record<string, string>
 }
 
 function splitName(full: string): { first: string; last: string } {
@@ -122,7 +128,34 @@ export async function POST(req: NextRequest) {
     contactId = newContact?.id ?? null
   }
 
-  // 3. Crear nota con el informe completo de prospección
+  // 3. Guardar ficha de prospección estructurada
+  if (contactId) {
+    await supabase.from('prospeccion').insert({
+      contact_id: contactId,
+      user_id: userId,
+      tipo: payload.tipo ?? null,
+      direccion: payload.direccion ?? null,
+      telefono_local: payload.telefono_local ?? null,
+      email_local: payload.email_local ?? null,
+      web: payload.web ?? null,
+      redes_sociales: payload.redes_sociales ?? null,
+      nombre_dueno: payload.nombre_dueno ?? null,
+      telefono_dueno: payload.telefono_dueno ?? null,
+      email_dueno: payload.email_dueno ?? null,
+      score: payload.score ?? null,
+      nivel_oportunidad: payload.nivel_oportunidad ?? null,
+      nivel_digital: payload.nivel_digital ?? null,
+      tiene_web: payload.tiene_web ?? false,
+      tiene_reservas: payload.tiene_reservas ?? false,
+      problemas: payload.problemas ?? null,
+      ciudad: payload.ciudad ?? null,
+      nicho: payload.nicho ?? null,
+      fecha_prospeccion: payload.fecha_prospeccion ?? new Date().toISOString().split('T')[0],
+      fuentes: payload.fuentes ?? null,
+    })
+  }
+
+  // 4. Crear nota resumen en el timeline
   if (contactId) {
     const problemas = payload.problemas?.length
       ? `\n🔴 Problemas detectados: ${payload.problemas.join(', ')}`

@@ -9,10 +9,11 @@ export default async function ContactDetailPage({ params }: { params: { id: stri
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [{ data: contact }, { data: activities }, { data: deals }] = await Promise.all([
-    supabase.from('contacts').select('*, companies(name, domain)').eq('id', params.id).eq('user_id', user.id).single(),
+  const [{ data: contact }, { data: activities }, { data: deals }, { data: prospeccion }] = await Promise.all([
+    supabase.from('contacts').select('*, companies(name, domain, website, industry, size)').eq('id', params.id).eq('user_id', user.id).single(),
     supabase.from('activities').select('*').eq('contact_id', params.id).order('created_at', { ascending: false }),
     supabase.from('deals').select('id, title, value, stage, probability').eq('contact_id', params.id).eq('user_id', user.id),
+    supabase.from('prospeccion').select('*').eq('contact_id', params.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
   ])
 
   if (!contact) notFound()
@@ -22,6 +23,7 @@ export default async function ContactDetailPage({ params }: { params: { id: stri
       contact={contact}
       activities={activities ?? []}
       deals={deals ?? []}
+      prospeccion={prospeccion ?? null}
       userId={user.id}
     />
   )
