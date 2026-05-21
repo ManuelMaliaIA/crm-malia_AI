@@ -10,7 +10,7 @@ export default async function CompaniesPage() {
 
   const { data: companies } = await supabase
     .from('companies')
-    .select('*, contacts(id, first_name, last_name, title, phone, email)')
+    .select('*, contacts!inner(id, first_name, last_name, title, phone, email)')
     .eq('user_id', user.id)
     .order('name')
 
