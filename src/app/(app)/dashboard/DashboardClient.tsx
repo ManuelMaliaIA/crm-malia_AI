@@ -111,7 +111,7 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
             <div className="kpi kpi-blue">
               <div className="kpi-head">
                 <span className="kpi-label">Deals activos</span>
-                <Briefcase size={15} color="#0A4B78" />
+                <Briefcase size={15} color="rgba(255,255,255,0.7)" />
               </div>
               <div className="kpi-value">{activeDeals.length}</div>
               <div className="kpi-sub">{fmt(activeDeals.reduce((s, d) => s + Number(d.value), 0))} en pipeline</div>
@@ -120,7 +120,7 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
             <div className="kpi kpi-purple">
               <div className="kpi-head">
                 <span className="kpi-label">Tasa de cierre</span>
-                <Target size={15} color="#0E8C78" />
+                <Target size={15} color="rgba(255,255,255,0.7)" />
               </div>
               <div className="kpi-value">{winRate}%</div>
               <div className="kpi-sub">{wonDeals.length} de {deals.length} deals</div>
@@ -129,7 +129,7 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
             <div className="kpi kpi-amber">
               <div className="kpi-head">
                 <span className="kpi-label">Contactos</span>
-                <Users size={15} color="#1A6FAA" />
+                <Users size={15} color="rgba(255,255,255,0.7)" />
               </div>
               <div className="kpi-value">{contacts.length}</div>
               <div className="kpi-sub">{contacts.filter(c => c.status === 'customer').length} clientes activos</div>

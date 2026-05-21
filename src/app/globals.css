@@ -275,39 +275,51 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
 
 /* Revenue — naranja */
 .kpi.kpi-teal {
-  background: #FFFFFF;
-  border-color: rgba(232,150,60,0.4);
-  border-top: 3px solid #E8963C;
-  box-shadow: 0 4px 16px rgba(232,150,60,0.10);
+  background: #E8963C;
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(232,150,60,0.35);
 }
-.kpi.kpi-teal .kpi-value { color: #E8963C; }
+.kpi.kpi-teal .kpi-value,
+.kpi.kpi-teal .kpi-label,
+.kpi.kpi-teal .kpi-sub { color: #fff; }
+.kpi.kpi-teal .kpi-label { opacity: 0.75; }
+.kpi.kpi-teal .kpi-sub { opacity: 0.7; }
 
 /* Deals — azul navy */
 .kpi.kpi-blue {
-  background: #FFFFFF;
-  border-color: rgba(10,75,120,0.3);
-  border-top: 3px solid #0A4B78;
-  box-shadow: 0 4px 16px rgba(10,75,120,0.08);
+  background: #0A4B78;
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(10,75,120,0.35);
 }
-.kpi.kpi-blue .kpi-value { color: #0A4B78; }
+.kpi.kpi-blue .kpi-value,
+.kpi.kpi-blue .kpi-label,
+.kpi.kpi-blue .kpi-sub { color: #fff; }
+.kpi.kpi-blue .kpi-label { opacity: 0.75; }
+.kpi.kpi-blue .kpi-sub { opacity: 0.7; }
 
 /* Tasa — teal */
 .kpi.kpi-purple {
-  background: #FFFFFF;
-  border-color: rgba(14,140,120,0.3);
-  border-top: 3px solid #0E8C78;
-  box-shadow: 0 4px 16px rgba(14,140,120,0.08);
+  background: #0E8C78;
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(14,140,120,0.35);
 }
-.kpi.kpi-purple .kpi-value { color: #0E8C78; }
+.kpi.kpi-purple .kpi-value,
+.kpi.kpi-purple .kpi-label,
+.kpi.kpi-purple .kpi-sub { color: #fff; }
+.kpi.kpi-purple .kpi-label { opacity: 0.75; }
+.kpi.kpi-purple .kpi-sub { opacity: 0.7; }
 
 /* Contactos — azul medio */
 .kpi.kpi-amber {
-  background: #FFFFFF;
-  border-color: rgba(26,111,170,0.3);
-  border-top: 3px solid #1A6FAA;
-  box-shadow: 0 4px 16px rgba(26,111,170,0.08);
+  background: #1A6FAA;
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(26,111,170,0.35);
 }
-.kpi.kpi-amber .kpi-value { color: #1A6FAA; }
+.kpi.kpi-amber .kpi-value,
+.kpi.kpi-amber .kpi-label,
+.kpi.kpi-amber .kpi-sub { color: #fff; }
+.kpi.kpi-amber .kpi-label { opacity: 0.75; }
+.kpi.kpi-amber .kpi-sub { opacity: 0.7; }
 
 .kpi-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .kpi-label { font-size: 11.5px; color: var(--text-3); letter-spacing: 0.02em; text-transform: uppercase; font-weight: 500; }
