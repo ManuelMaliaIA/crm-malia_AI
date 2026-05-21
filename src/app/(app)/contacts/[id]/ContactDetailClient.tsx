@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft, Mail, Phone, Building2, FileText, Send, PhoneCall,
+  ArrowLeft, Mail, Phone, FileText, Send, PhoneCall,
   CheckSquare, Calendar, Globe, Briefcase, User, ExternalLink,
   MapPin, Share2, Star, AlertCircle, Wifi, WifiOff, UtensilsCrossed,
 } from 'lucide-react'

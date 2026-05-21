@@ -289,7 +289,7 @@ function CompanyCard({ company }: { company: Company }) {
   )
 }
 
-export default function ContactsClient({ companies, userId: _userId }: { companies: Company[]; userId: string }) {
+export default function ContactsClient({ companies }: { companies: Company[]; userId: string }) {
   const [search, setSearch] = useState('')
 
   const filtered = companies.filter(c =>
