@@ -17,12 +17,13 @@
   --text-2: #3A5068;
   --text-3: #6A85A0;
   --text-4: #9BB0C4;
-  /* Acento naranja — igual que la landing */
-  --gold: #E8963C;
-  --gold-soft: rgba(232, 150, 60, 0.10);
-  --gold-mid: rgba(232, 150, 60, 0.20);
-  --gold-dim: rgba(232, 150, 60, 0.5);
-  /* Azul navy de la landing */
+  /* Acento azul */
+  --gold: #1A6FAA;
+  --gold-soft: rgba(26, 111, 170, 0.12);
+  --gold-mid: rgba(26, 111, 170, 0.22);
+  --gold-dim: rgba(26, 111, 170, 0.5);
+  /* Naranja — para cards y acentos secundarios */
+  --orange: #E8963C;
   --blue: #0A4B78;
   --blue-hi: #1A6FAA;
   --neg: #dc4f4f;
@@ -290,11 +291,11 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   color: #fff !important;
 }
 
-/* Revenue — naranja */
+/* Revenue — azul */
 .kpi.kpi-teal {
-  background: #E8963C;
+  background: #1A6FAA;
   border-color: rgba(0,0,0,0.08);
-  box-shadow: 0 4px 20px rgba(232,150,60,0.35);
+  box-shadow: 0 4px 20px rgba(26,111,170,0.35);
 }
 
 /* Deals — azul navy */
@@ -304,11 +305,11 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   box-shadow: 0 4px 20px rgba(10,75,120,0.35);
 }
 
-/* Tasa — teal */
+/* Tasa — naranja */
 .kpi.kpi-purple {
-  background: #0E8C78;
+  background: #E8963C;
   border-color: rgba(0,0,0,0.08);
-  box-shadow: 0 4px 20px rgba(14,140,120,0.35);
+  box-shadow: 0 4px 20px rgba(232,150,60,0.35);
 }
 
 /* Contactos — azul medio */
