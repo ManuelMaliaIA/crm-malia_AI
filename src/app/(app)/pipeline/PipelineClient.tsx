@@ -7,18 +7,12 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragStartEvent,
   DragEndEvent,
-  DragOverEvent,
-  closestCorners,
+  DragStartEvent,
   useDroppable,
+  useDraggable,
+  rectIntersection,
 } from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import Topbar from '@/components/layout/Topbar'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -47,11 +41,10 @@ function fmt(n: number) {
   return `$${n}`
 }
 
-function DealCard({ deal, isDragging = false }: { deal: Deal; isDragging?: boolean }) {
+function DealCardDisplay({ deal, isDragging = false }: { deal: Deal; isDragging?: boolean }) {
   const contact = deal.contacts
     ? `${deal.contacts.first_name} ${deal.contacts.last_name}`
     : deal.companies?.name
-
   return (
     <div className={`deal-card ${isDragging ? 'dragging' : ''}`}>
       <div className="deal-title">{deal.title}</div>
@@ -64,43 +57,31 @@ function DealCard({ deal, isDragging = false }: { deal: Deal; isDragging?: boole
   )
 }
 
-function SortableDealCard({ deal }: { deal: Deal }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: deal.id })
+function DraggableDeal({ deal }: { deal: Deal }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: deal.id })
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
-      {...attributes}
       {...listeners}
+      {...attributes}
+      style={{ opacity: isDragging ? 0.35 : 1, cursor: 'grab', touchAction: 'none' }}
     >
-      <DealCard deal={deal} />
+      <DealCardDisplay deal={deal} />
     </div>
   )
 }
 
-function DroppableColBody({ stageKey, deals, isOver }: { stageKey: string; deals: Deal[]; isOver: boolean }) {
+function DroppableColumn({ stageKey, children, isOver }: {
+  stageKey: string; children: React.ReactNode; isOver: boolean
+}) {
   const { setNodeRef } = useDroppable({ id: stageKey })
-
   return (
     <div
       ref={setNodeRef}
       className={`col-body ${isOver ? 'drag-over' : ''}`}
       style={{ minHeight: 200 }}
     >
-      <SortableContext items={deals.map(d => d.id)} strategy={verticalListSortingStrategy}>
-        {deals.map(deal => (
-          <SortableDealCard key={deal.id} deal={deal} />
-        ))}
-      </SortableContext>
-      {deals.length === 0 && (
-        <div style={{
-          padding: '20px 0', textAlign: 'center',
-          fontSize: 12, color: 'var(--text-4)',
-          border: '1px dashed var(--border)', borderRadius: 8,
-        }}>
-          Arrastra aquí
-        </div>
-      )}
+      {children}
     </div>
   )
 }
@@ -108,41 +89,34 @@ function DroppableColBody({ stageKey, deals, isOver }: { stageKey: string; deals
 export default function PipelineClient({ deals: initial }: { deals: Deal[]; userId?: string }) {
   const [deals, setDeals] = useState(initial)
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [overStage, setOverStage] = useState<string | null>(null)
+  const [overStageKey, setOverStageKey] = useState<string | null>(null)
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  )
 
   const activeDeal = activeId ? deals.find(d => d.id === activeId) : null
-
-  function getStageOfId(id: string): string | null {
-    if (STAGES.find(s => s.key === id)) return id
-    return deals.find(d => d.id === id)?.stage ?? null
-  }
 
   function onDragStart({ active }: DragStartEvent) {
     setActiveId(active.id as string)
   }
 
-  function onDragOver({ over }: DragOverEvent) {
-    if (!over) { setOverStage(null); return }
-    setOverStage(getStageOfId(over.id as string))
-  }
-
-  async function onDragEnd({ active, over }: DragEndEvent) {
+  function onDragEnd({ active, over }: DragEndEvent) {
     setActiveId(null)
-    setOverStage(null)
+    setOverStageKey(null)
     if (!over) return
 
     const draggedDeal = deals.find(d => d.id === active.id)
     if (!draggedDeal) return
 
-    const targetStage = getStageOfId(over.id as string)
-    if (!targetStage || targetStage === draggedDeal.stage) return
+    const targetStage = over.id as string
+    if (!STAGES.find(s => s.key === targetStage)) return
+    if (targetStage === draggedDeal.stage) return
 
     setDeals(prev => prev.map(d => d.id === draggedDeal.id ? { ...d, stage: targetStage } : d))
 
     const sb = createClient()
-    await sb.from('deals').update({ stage: targetStage as DealStage }).eq('id', draggedDeal.id)
+    sb.from('deals').update({ stage: targetStage as DealStage }).eq('id', draggedDeal.id)
   }
 
   const totalPipelineValue = deals
@@ -167,9 +141,8 @@ export default function PipelineClient({ deals: initial }: { deals: Deal[]; user
         <div style={{ padding: '24px 32px', height: '100%' }}>
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCorners}
+            collisionDetection={rectIntersection}
             onDragStart={onDragStart}
-            onDragOver={onDragOver}
             onDragEnd={onDragEnd}
           >
             <div className="pipeline-board">
@@ -191,18 +164,30 @@ export default function PipelineClient({ deals: initial }: { deals: Deal[]; user
                       <span className="col-value">{fmt(stageValue)}</span>
                     </div>
 
-                    <DroppableColBody
+                    <DroppableColumn
                       stageKey={stage.key}
-                      deals={stageDeals}
-                      isOver={overStage === stage.key}
-                    />
+                      isOver={overStageKey === stage.key}
+                    >
+                      {stageDeals.map(deal => (
+                        <DraggableDeal key={deal.id} deal={deal} />
+                      ))}
+                      {stageDeals.length === 0 && (
+                        <div style={{
+                          padding: '20px 0', textAlign: 'center',
+                          fontSize: 12, color: 'var(--text-4)',
+                          border: '1px dashed var(--border)', borderRadius: 8,
+                        }}>
+                          Arrastra aquí
+                        </div>
+                      )}
+                    </DroppableColumn>
                   </div>
                 )
               })}
             </div>
 
-            <DragOverlay>
-              {activeDeal && <DealCard deal={activeDeal} isDragging />}
+            <DragOverlay dropAnimation={null}>
+              {activeDeal && <DealCardDisplay deal={activeDeal} isDragging />}
             </DragOverlay>
           </DndContext>
         </div>
