@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Topbar from '@/components/layout/Topbar'
-import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink, Copy, Check } from 'lucide-react'
+import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink, Copy, Check, Trash2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -65,15 +66,25 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function ProspectoRow({ p }: { p: Prospecto }) {
+function ProspectoRow({ p, onDelete }: { p: Prospecto; onDelete: (id: number) => void }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   function copyIcebreak() {
     if (!p.icebreak) return
     navigator.clipboard.writeText(p.icebreak)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!confirm(`¿Eliminar "${p.nombre}"? Esta acción no se puede deshacer.`)) return
+    setDeleting(true)
+    const sb = createClient()
+    await sb.from('prospectos').delete().eq('id', p.id)
+    onDelete(p.id)
   }
 
   const redesLinks = p.redes
@@ -142,10 +153,30 @@ function ProspectoRow({ p }: { p: Prospecto }) {
           ) : <span style={{ fontSize: 12, color: 'var(--text-4)' }}>—</span>}
         </td>
 
-        {/* Chevron */}
-        <td style={{ padding: '12px 16px 12px 8px', width: 30 }}>
-          <div style={{ color: 'var(--text-3)' }}>
-            {open ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        {/* Acciones */}
+        <td style={{ padding: '12px 16px 12px 8px', width: 60 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              title="Eliminar contacto"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 26, height: 26, borderRadius: 6,
+                border: '1px solid var(--border-2)',
+                background: 'transparent',
+                color: deleting ? 'var(--text-4)' : 'var(--text-3)',
+                cursor: deleting ? 'not-allowed' : 'pointer',
+                transition: 'all .15s ease',
+              }}
+              onMouseEnter={e => { if (!deleting) { e.currentTarget.style.background = 'rgba(220,79,79,0.1)'; e.currentTarget.style.color = '#dc4f4f'; e.currentTarget.style.borderColor = 'rgba(220,79,79,0.3)' }}}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-3)'; e.currentTarget.style.borderColor = 'var(--border-2)' }}
+            >
+              <Trash2 size={13} />
+            </button>
+            <div style={{ color: 'var(--text-3)' }}>
+              {open ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            </div>
           </div>
         </td>
       </tr>
@@ -153,7 +184,7 @@ function ProspectoRow({ p }: { p: Prospecto }) {
       {/* Panel expandido */}
       {open && (
         <tr style={{ background: 'var(--surface-1)', borderBottom: '1px solid var(--border)' }}>
-          <td colSpan={8} style={{ padding: '20px 24px' }}>
+          <td colSpan={9} style={{ padding: '20px 24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 28 }}>
 
               {/* Negocio */}
@@ -399,8 +430,13 @@ function ProspectoRow({ p }: { p: Prospecto }) {
   )
 }
 
-export default function ContactsClient({ prospectos }: { prospectos: Prospecto[]; userId: string }) {
+export default function ContactsClient({ prospectos: initial }: { prospectos: Prospecto[]; userId: string }) {
+  const [prospectos, setProspectos] = useState(initial)
   const [search, setSearch] = useState('')
+
+  function handleDelete(id: number) {
+    setProspectos(prev => prev.filter(p => p.id !== id))
+  }
 
   const filtered = prospectos.filter(p =>
     !search ||
@@ -415,6 +451,7 @@ export default function ContactsClient({ prospectos }: { prospectos: Prospecto[]
       <Topbar
         title="Contactos"
         subtitle={`${prospectos.length} negocios prospectados`}
+
         showSearch
         searchPlaceholder="Buscar por nombre, tipo, ciudad…"
         onSearch={setSearch}
@@ -442,7 +479,7 @@ export default function ContactsClient({ prospectos }: { prospectos: Prospecto[]
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(p => <ProspectoRow key={p.id} p={p} />)}
+                  {filtered.map(p => <ProspectoRow key={p.id} p={p} onDelete={handleDelete} />)}
                 </tbody>
               </table>
             </div>
