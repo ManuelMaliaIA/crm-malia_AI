@@ -34,11 +34,10 @@ function SparkLine({ values }: { values: number[] }) {
       <polyline
         points={pts.join(' ')}
         fill="none"
-        stroke="#E8963C"
+        stroke="rgba(255,255,255,0.7)"
         strokeWidth="2.5"
         strokeLinejoin="round"
         strokeLinecap="round"
-        opacity="0.8"
       />
     </svg>
   )

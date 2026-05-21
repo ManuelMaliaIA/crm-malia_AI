@@ -273,17 +273,29 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   overflow: hidden;
 }
 
+/* Coloreadas — base compartida */
+.kpi.kpi-teal, .kpi.kpi-blue, .kpi.kpi-purple, .kpi.kpi-amber {
+  color: #fff;
+}
+.kpi.kpi-teal .kpi-value, .kpi.kpi-blue .kpi-value,
+.kpi.kpi-purple .kpi-value, .kpi.kpi-amber .kpi-value { color: #fff !important; }
+.kpi.kpi-teal .kpi-label, .kpi.kpi-blue .kpi-label,
+.kpi.kpi-purple .kpi-label, .kpi.kpi-amber .kpi-label { color: rgba(255,255,255,0.75) !important; }
+.kpi.kpi-teal .kpi-sub, .kpi.kpi-blue .kpi-sub,
+.kpi.kpi-purple .kpi-sub, .kpi.kpi-amber .kpi-sub { color: rgba(255,255,255,0.65) !important; }
+/* chip dentro de tarjeta coloreada */
+.kpi.kpi-teal .chip, .kpi.kpi-blue .chip,
+.kpi.kpi-purple .chip, .kpi.kpi-amber .chip {
+  background: rgba(255,255,255,0.2) !important;
+  color: #fff !important;
+}
+
 /* Revenue — naranja */
 .kpi.kpi-teal {
   background: #E8963C;
   border-color: rgba(0,0,0,0.08);
   box-shadow: 0 4px 20px rgba(232,150,60,0.35);
 }
-.kpi.kpi-teal .kpi-value,
-.kpi.kpi-teal .kpi-label,
-.kpi.kpi-teal .kpi-sub { color: #fff; }
-.kpi.kpi-teal .kpi-label { opacity: 0.75; }
-.kpi.kpi-teal .kpi-sub { opacity: 0.7; }
 
 /* Deals — azul navy */
 .kpi.kpi-blue {
@@ -291,11 +303,6 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   border-color: rgba(0,0,0,0.08);
   box-shadow: 0 4px 20px rgba(10,75,120,0.35);
 }
-.kpi.kpi-blue .kpi-value,
-.kpi.kpi-blue .kpi-label,
-.kpi.kpi-blue .kpi-sub { color: #fff; }
-.kpi.kpi-blue .kpi-label { opacity: 0.75; }
-.kpi.kpi-blue .kpi-sub { opacity: 0.7; }
 
 /* Tasa — teal */
 .kpi.kpi-purple {
@@ -303,11 +310,6 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   border-color: rgba(0,0,0,0.08);
   box-shadow: 0 4px 20px rgba(14,140,120,0.35);
 }
-.kpi.kpi-purple .kpi-value,
-.kpi.kpi-purple .kpi-label,
-.kpi.kpi-purple .kpi-sub { color: #fff; }
-.kpi.kpi-purple .kpi-label { opacity: 0.75; }
-.kpi.kpi-purple .kpi-sub { opacity: 0.7; }
 
 /* Contactos — azul medio */
 .kpi.kpi-amber {
@@ -315,11 +317,6 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   border-color: rgba(0,0,0,0.08);
   box-shadow: 0 4px 20px rgba(26,111,170,0.35);
 }
-.kpi.kpi-amber .kpi-value,
-.kpi.kpi-amber .kpi-label,
-.kpi.kpi-amber .kpi-sub { color: #fff; }
-.kpi.kpi-amber .kpi-label { opacity: 0.75; }
-.kpi.kpi-amber .kpi-sub { opacity: 0.7; }
 
 .kpi-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .kpi-label { font-size: 11.5px; color: var(--text-3); letter-spacing: 0.02em; text-transform: uppercase; font-weight: 500; }
