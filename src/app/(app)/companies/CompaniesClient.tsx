@@ -1,16 +1,20 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Topbar from '@/components/layout/Topbar'
-import { Plus, Building2, Globe, X } from 'lucide-react'
+import { Plus, Building2, Globe, X, User, Phone, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
+type ContactSnip = { id: string; first_name: string; last_name: string; title: string | null; phone: string | null; email: string }
 type Company = {
   id: string; name: string; domain: string | null; industry: string | null
   size: string | null; website: string | null; created_at: string
+  contacts?: ContactSnip[]
 }
 
 export default function CompaniesClient({ companies: initial, userId }: { companies: Company[]; userId: string }) {
+  const router = useRouter()
   const [companies, setCompanies] = useState(initial)
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -39,7 +43,7 @@ export default function CompaniesClient({ companies: initial, userId }: { compan
       size: form.size || null,
       website: form.website || null,
       user_id: userId,
-    }).select().single()
+    }).select('*, contacts(id, first_name, last_name, title, phone, email)').single()
     setLoading(false)
     if (error) { setErrors({ name: error.message }); return }
     setCompanies(c => [data, ...c])
@@ -73,37 +77,79 @@ export default function CompaniesClient({ companies: initial, userId }: { compan
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-              {filtered.map(c => (
-                <div key={c.id} className="card" style={{ cursor: 'pointer' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 10, background: 'var(--surface-2)',
-                      border: '1px solid var(--border-2)', display: 'grid', placeItems: 'center', flexShrink: 0
-                    }}>
-                      <Building2 size={18} color="var(--text-3)" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 16 }}>
+              {filtered.map(c => {
+                const owner = c.contacts?.[0] ?? null
+                return (
+                  <div
+                    key={c.id}
+                    className="card"
+                    style={{ cursor: 'pointer', transition: 'border-color 0.15s' }}
+                    onClick={() => router.push(`/companies/${c.id}`)}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--gold)')}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = '')}
+                  >
+                    {/* Cabecera empresa */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 10, background: 'var(--surface-2)',
+                        border: '1px solid var(--border-2)', display: 'grid', placeItems: 'center', flexShrink: 0
+                      }}>
+                        <Building2 size={18} color="var(--text-3)" />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600 }} className="truncate">{c.name}</div>
+                        {c.domain && <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{c.domain}</div>}
+                      </div>
                     </div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>{c.name}</div>
-                      {c.domain && <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{c.domain}</div>}
-                    </div>
+
+                    {/* Chips */}
+                    {(c.industry || c.size) && (
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+                        {c.industry && <span className="chip" style={{ background: 'var(--surface-3)', color: 'var(--text-3)', textTransform: 'capitalize' }}>{c.industry}</span>}
+                        {c.size && <span className="chip" style={{ background: 'var(--surface-3)', color: 'var(--text-3)' }}>{c.size}</span>}
+                      </div>
+                    )}
+
+                    {/* Web */}
+                    {c.website && (
+                      <a
+                        href={c.website} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10, fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <Globe size={12} /> {c.website.replace(/^https?:\/\//, '')}
+                      </a>
+                    )}
+
+                    {/* Propietario vinculado */}
+                    {owner && (
+                      <div style={{
+                        borderTop: '1px solid var(--border)', paddingTop: 10, marginTop: 4,
+                        display: 'flex', flexDirection: 'column', gap: 5,
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-3)' }}>
+                          <User size={11} />
+                          <span style={{ fontWeight: 500, color: 'var(--text-2)' }}>
+                            {owner.first_name} {owner.last_name}
+                          </span>
+                          {owner.title && <span style={{ color: 'var(--text-3)' }}>· {owner.title}</span>}
+                        </div>
+                        {owner.phone && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--text-3)' }}>
+                            <Phone size={10} /> {owner.phone}
+                          </div>
+                        )}
+                        {!owner.email.includes('@placeholder.crm') && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--text-3)' }}>
+                            <Mail size={10} /> {owner.email}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  {(c.industry || c.size) && (
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {c.industry && <span className="chip" style={{ background: 'var(--surface-3)', color: 'var(--text-3)' }}>{c.industry}</span>}
-                      {c.size && <span className="chip" style={{ background: 'var(--surface-3)', color: 'var(--text-3)' }}>{c.size}</span>}
-                    </div>
-                  )}
-                  {c.website && (
-                    <a href={c.website} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 10, fontSize: 12, color: 'var(--text-3)', textDecoration: 'none' }}
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <Globe size={12} /> {c.website.replace(/^https?:\/\//, '')}
-                    </a>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -129,7 +175,7 @@ export default function CompaniesClient({ companies: initial, userId }: { compan
                 </div>
                 <div className="form-group">
                   <label className="form-label">Industria</label>
-                  <input className="form-input" value={form.industry} onChange={e => setF('industry', e.target.value)} placeholder="SaaS" />
+                  <input className="form-input" value={form.industry} onChange={e => setF('industry', e.target.value)} placeholder="restaurante" />
                 </div>
               </div>
               <div className="grid-2">
@@ -143,7 +189,7 @@ export default function CompaniesClient({ companies: initial, userId }: { compan
                 </div>
                 <div className="form-group">
                   <label className="form-label">Website</label>
-                  <input className="form-input" value={form.website} onChange={e => setF('website', e.target.value)} placeholder="https://acme.com" />
+                  <input className="form-input" value={form.website} onChange={e => setF('website', e.target.value)} placeholder="https://negocio.es" />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 6 }}>
