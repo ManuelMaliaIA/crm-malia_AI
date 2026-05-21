@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Topbar from '@/components/layout/Topbar'
-import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink, Copy, Check, Trash2, Plus } from 'lucide-react'
+import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink, Copy, Check, Trash2, Plus, GitBranch } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -36,6 +36,7 @@ type Prospecto = {
   tiene_reservas: boolean | null
   problemas: string[] | null
   icebreak: string | null
+  en_pipeline: boolean | null
 }
 
 function initials(name: string) {
@@ -66,10 +67,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function ProspectoRow({ p, onDelete }: { p: Prospecto; onDelete: (id: number) => void }) {
+function ProspectoRow({ p, onDelete, onTogglePipeline }: { p: Prospecto; onDelete: (id: number) => void; onTogglePipeline: (id: number, val: boolean) => void }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [togglingPipeline, setTogglingPipeline] = useState(false)
 
   function copyIcebreak() {
     if (!p.icebreak) return
@@ -83,8 +85,20 @@ function ProspectoRow({ p, onDelete }: { p: Prospecto; onDelete: (id: number) =>
     if (!confirm(`¿Eliminar "${p.nombre}"? Esta acción no se puede deshacer.`)) return
     setDeleting(true)
     const sb = createClient()
-    await sb.from('prospectos').delete().eq('id', p.id)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (sb as any).from('prospectos').delete().eq('id', p.id)
     onDelete(p.id)
+  }
+
+  async function handleTogglePipeline(e: React.MouseEvent) {
+    e.stopPropagation()
+    setTogglingPipeline(true)
+    const newVal = !p.en_pipeline
+    const sb = createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (sb as any).from('prospectos').update({ en_pipeline: newVal }).eq('id', p.id)
+    onTogglePipeline(p.id, newVal)
+    setTogglingPipeline(false)
   }
 
   const redesLinks = p.redes
@@ -107,7 +121,16 @@ function ProspectoRow({ p, onDelete }: { p: Prospecto; onDelete: (id: number) =>
           </div>
         </td>
         <td style={{ padding: '12px 8px 12px 0', minWidth: 180 }}>
-          <div style={{ fontSize: 13, fontWeight: 600 }}>{p.nombre}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{p.nombre}</div>
+            {p.en_pipeline && (
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 99,
+                background: 'rgba(26,111,170,0.12)', color: '#1A6FAA',
+                textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0,
+              }}>En pipeline</span>
+            )}
+          </div>
           <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2 }}>{p.tipo ?? '—'}</div>
         </td>
 
@@ -154,8 +177,26 @@ function ProspectoRow({ p, onDelete }: { p: Prospecto; onDelete: (id: number) =>
         </td>
 
         {/* Acciones */}
-        <td style={{ padding: '12px 16px 12px 8px', width: 60 }}>
+        <td style={{ padding: '12px 16px 12px 8px', width: 80 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              onClick={handleTogglePipeline}
+              disabled={togglingPipeline}
+              title={p.en_pipeline ? 'Quitar del pipeline' : 'Añadir al pipeline'}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 26, height: 26, borderRadius: 6,
+                border: `1px solid ${p.en_pipeline ? 'rgba(26,111,170,0.4)' : 'var(--border-2)'}`,
+                background: p.en_pipeline ? 'rgba(26,111,170,0.1)' : 'transparent',
+                color: p.en_pipeline ? '#1A6FAA' : 'var(--text-3)',
+                cursor: togglingPipeline ? 'not-allowed' : 'pointer',
+                transition: 'all .15s ease',
+              }}
+              onMouseEnter={e => { if (!togglingPipeline && !p.en_pipeline) { e.currentTarget.style.background = 'rgba(26,111,170,0.08)'; e.currentTarget.style.color = '#1A6FAA'; e.currentTarget.style.borderColor = 'rgba(26,111,170,0.3)' }}}
+              onMouseLeave={e => { if (!p.en_pipeline) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-3)'; e.currentTarget.style.borderColor = 'var(--border-2)' }}}
+            >
+              <GitBranch size={13} />
+            </button>
             <button
               onClick={handleDelete}
               disabled={deleting}
@@ -539,7 +580,7 @@ function NuevoContactoModal({ onClose, onCreated }: { onClose: () => void; onCre
   )
 }
 
-type ScoreFilter = 'todos' | 'alto' | 'medio' | 'bajo' | 'sin_score'
+type ScoreFilter = 'todos' | 'alto' | 'medio' | 'bajo' | 'sin_score' | 'pipeline'
 
 export default function ContactsClient({ prospectos: initial }: { prospectos: Prospecto[]; userId: string }) {
   const [prospectos, setProspectos] = useState(initial)
@@ -555,20 +596,27 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
     setProspectos(prev => [p, ...prev])
   }
 
-  const filtered = prospectos.filter(p => {
-    if (search && !(
-      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      p.ciudad?.toLowerCase().includes(search.toLowerCase()) ||
-      p.tipo?.toLowerCase().includes(search.toLowerCase()) ||
-      p.direccion?.toLowerCase().includes(search.toLowerCase())
-    )) return false
+  function handleTogglePipeline(id: number, val: boolean) {
+    setProspectos(prev => prev.map(p => p.id === id ? { ...p, en_pipeline: val } : p))
+  }
 
-    if (scoreFilter === 'alto') return p.score != null && p.score >= 70
-    if (scoreFilter === 'medio') return p.score != null && p.score >= 40 && p.score < 70
-    if (scoreFilter === 'bajo') return p.score != null && p.score < 40
-    if (scoreFilter === 'sin_score') return p.score == null
-    return true
-  })
+  const filtered = prospectos
+    .filter(p => {
+      if (search && !(
+        p.nombre.toLowerCase().includes(search.toLowerCase()) ||
+        p.ciudad?.toLowerCase().includes(search.toLowerCase()) ||
+        p.tipo?.toLowerCase().includes(search.toLowerCase()) ||
+        p.direccion?.toLowerCase().includes(search.toLowerCase())
+      )) return false
+
+      if (scoreFilter === 'pipeline') return !!p.en_pipeline
+      if (scoreFilter === 'alto') return p.score != null && p.score >= 70
+      if (scoreFilter === 'medio') return p.score != null && p.score >= 40 && p.score < 70
+      if (scoreFilter === 'bajo') return p.score != null && p.score < 40
+      if (scoreFilter === 'sin_score') return p.score == null
+      return true
+    })
+    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
 
   return (
     <>
@@ -591,11 +639,12 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
           {/* Filtros de score */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
             {([
-              { key: 'todos',     label: 'Todos',       color: 'var(--text-2)' },
-              { key: 'alto',      label: '🟢 Score alto (≥70)',  color: '#0E8C78' },
-              { key: 'medio',     label: '🟠 Score medio (40–69)', color: '#E8963C' },
-              { key: 'bajo',      label: '🔴 Score bajo (<40)',   color: '#e87171' },
-              { key: 'sin_score', label: 'Sin score',    color: 'var(--text-3)' },
+              { key: 'todos',     label: 'Todos',                   color: 'var(--text-2)' },
+              { key: 'pipeline',  label: 'En pipeline',             color: '#1A6FAA' },
+              { key: 'alto',      label: '🟢 Score alto (≥70)',     color: '#0E8C78' },
+              { key: 'medio',     label: '🟠 Score medio (40–69)',  color: '#E8963C' },
+              { key: 'bajo',      label: '🔴 Score bajo (<40)',     color: '#e87171' },
+              { key: 'sin_score', label: 'Sin score',               color: 'var(--text-3)' },
             ] as { key: ScoreFilter; label: string; color: string }[]).map(f => (
               <button
                 key={f.key}
@@ -612,6 +661,7 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
                 {f.key !== 'todos' && (
                   <span style={{ marginLeft: 6, opacity: 0.7 }}>
                     ({prospectos.filter(p =>
+                      f.key === 'pipeline' ? !!p.en_pipeline :
                       f.key === 'alto' ? (p.score != null && p.score >= 70) :
                       f.key === 'medio' ? (p.score != null && p.score >= 40 && p.score < 70) :
                       f.key === 'bajo' ? (p.score != null && p.score < 40) :
@@ -647,7 +697,7 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(p => <ProspectoRow key={p.id} p={p} onDelete={handleDelete} />)}
+                  {filtered.map(p => <ProspectoRow key={p.id} p={p} onDelete={handleDelete} onTogglePipeline={handleTogglePipeline} />)}
                 </tbody>
               </table>
             </div>
