@@ -4,25 +4,25 @@
 
 /* ====== Malia AI CRM — Design Tokens ====== */
 :root {
-  /* Fondos — navy oscuro derivado de la paleta de marca */
-  --bg: #060C16;
-  --surface-1: #09111E;
-  --surface-2: #0D1828;
-  --surface-3: #122033;
-  --border: #162C4A;
-  --border-2: #1B3558;
-  --border-hi: #224268;
+  /* Fondos — slate oscuro pero legible */
+  --bg: #111827;
+  --surface-1: #1C2536;
+  --surface-2: #222E42;
+  --surface-3: #29374E;
+  --border: #2A3A52;
+  --border-2: #334560;
+  --border-hi: #3D5272;
   /* Texto */
   --text: #EEF4FF;
   --text-2: #8AABCC;
-  --text-3: #4A7A9B;
-  --text-4: #2A5A7A;
-  /* Acento principal — teal de la landing (#2A9D8F) */
+  --text-3: #4A6A8A;
+  --text-4: #2A4A6A;
+  /* Acento principal — teal de la landing */
   --gold: #2A9D8F;
   --gold-soft: rgba(42, 157, 143, 0.12);
   --gold-mid: rgba(42, 157, 143, 0.22);
   --gold-dim: rgba(42, 157, 143, 0.5);
-  /* Acento secundario — azul marino de la landing (#0A4B78) */
+  /* Acento azul — landing primary */
   --blue: #0A4B78;
   --blue-hi: #1A6FAA;
   --neg: #e87171;
@@ -272,19 +272,58 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: inher
   position: relative;
   overflow: hidden;
 }
-.kpi.kpi-hl {
-  background: linear-gradient(135deg, #0E1525 0%, #091020 100%);
-  border-color: rgba(79,142,247,0.25);
-  box-shadow: 0 1px 0 rgba(79,142,247,0.08) inset, 0 30px 80px -30px rgba(79,142,247,0.18);
+
+/* Revenue — teal */
+.kpi.kpi-teal {
+  background: linear-gradient(135deg, #0D2E2A 0%, #081F1C 100%);
+  border-color: rgba(42,157,143,0.3);
+  box-shadow: 0 30px 80px -30px rgba(42,157,143,0.2);
 }
-.kpi.kpi-hl::before {
+.kpi.kpi-teal::before {
   content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(79,142,247,0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(42,157,143,0.6), transparent);
 }
+.kpi.kpi-teal .kpi-value { color: #2A9D8F; }
+
+/* Deals — azul */
+.kpi.kpi-blue {
+  background: linear-gradient(135deg, #0D1E3C 0%, #091428 100%);
+  border-color: rgba(59,130,246,0.3);
+  box-shadow: 0 30px 80px -30px rgba(59,130,246,0.2);
+}
+.kpi.kpi-blue::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59,130,246,0.6), transparent);
+}
+.kpi.kpi-blue .kpi-value { color: #3B82F6; }
+
+/* Tasa — violeta */
+.kpi.kpi-purple {
+  background: linear-gradient(135deg, #1A1535 0%, #110E26 100%);
+  border-color: rgba(139,92,246,0.3);
+  box-shadow: 0 30px 80px -30px rgba(139,92,246,0.2);
+}
+.kpi.kpi-purple::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.6), transparent);
+}
+.kpi.kpi-purple .kpi-value { color: #8B5CF6; }
+
+/* Contactos — ámbar */
+.kpi.kpi-amber {
+  background: linear-gradient(135deg, #2A1E0A 0%, #1C1407 100%);
+  border-color: rgba(245,158,11,0.3);
+  box-shadow: 0 30px 80px -30px rgba(245,158,11,0.2);
+}
+.kpi.kpi-amber::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(245,158,11,0.6), transparent);
+}
+.kpi.kpi-amber .kpi-value { color: #F59E0B; }
+
 .kpi-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .kpi-label { font-size: 11.5px; color: var(--text-3); letter-spacing: 0.02em; text-transform: uppercase; font-weight: 500; }
 .kpi-value { font-size: 30px; font-weight: 600; letter-spacing: -0.025em; line-height: 1; }
-.kpi.kpi-hl .kpi-value { color: var(--gold); }
 .kpi-sub { font-size: 11.5px; color: var(--text-3); margin-top: 4px; }
 
 /* ====== Chips / Badges ====== */

@@ -34,7 +34,7 @@ function SparkLine({ values }: { values: number[] }) {
       <polyline
         points={pts.join(' ')}
         fill="none"
-        stroke="#FAC51C"
+        stroke="#2A9D8F"
         strokeWidth="2.5"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -98,7 +98,7 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
 
           {/* KPI Row */}
           <div className="kpi-row">
-            <div className="kpi kpi-hl">
+            <div className="kpi kpi-teal">
               <div className="kpi-head">
                 <span className="kpi-label">Revenue total</span>
                 <span className="chip chip-up"><TrendingUp size={9} />+12%</span>
@@ -108,28 +108,28 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
               <SparkLine values={monthlyRev} />
             </div>
 
-            <div className="kpi">
+            <div className="kpi kpi-blue">
               <div className="kpi-head">
                 <span className="kpi-label">Deals activos</span>
-                <Briefcase size={15} color="#5e5e5e" />
+                <Briefcase size={15} color="#3B82F6" />
               </div>
               <div className="kpi-value">{activeDeals.length}</div>
               <div className="kpi-sub">{fmt(activeDeals.reduce((s, d) => s + Number(d.value), 0))} en pipeline</div>
             </div>
 
-            <div className="kpi">
+            <div className="kpi kpi-purple">
               <div className="kpi-head">
                 <span className="kpi-label">Tasa de cierre</span>
-                <Target size={15} color="#5e5e5e" />
+                <Target size={15} color="#8B5CF6" />
               </div>
               <div className="kpi-value">{winRate}%</div>
               <div className="kpi-sub">{wonDeals.length} de {deals.length} deals</div>
             </div>
 
-            <div className="kpi">
+            <div className="kpi kpi-amber">
               <div className="kpi-head">
                 <span className="kpi-label">Contactos</span>
-                <Users size={15} color="#5e5e5e" />
+                <Users size={15} color="#F59E0B" />
               </div>
               <div className="kpi-value">{contacts.length}</div>
               <div className="kpi-sub">{contacts.filter(c => c.status === 'customer').length} clientes activos</div>
@@ -298,8 +298,8 @@ function RevenueChart({ months, values }: { months: string[]; values: number[] }
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 180 }}>
       <defs>
         <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FAC51C" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#FAC51C" stopOpacity="0" />
+          <stop offset="0%" stopColor="#2A9D8F" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#2A9D8F" stopOpacity="0" />
         </linearGradient>
       </defs>
       {/* Y gridlines */}
@@ -307,8 +307,8 @@ function RevenueChart({ months, values }: { months: string[]; values: number[] }
         const y = PAD.top + innerH - t * innerH
         return (
           <g key={t}>
-            <line x1={PAD.left} x2={W - PAD.right} y1={y} y2={y} stroke="#232323" strokeWidth="1" />
-            <text x={PAD.left - 8} y={y + 4} textAnchor="end" fontSize="10" fill="#8a8a8a" fontFamily="Inter">
+            <line x1={PAD.left} x2={W - PAD.right} y1={y} y2={y} stroke="#2A3A52" strokeWidth="1" />
+            <text x={PAD.left - 8} y={y + 4} textAnchor="end" fontSize="10" fill="#4A6A8A" fontFamily="Inter">
               {t === 0 ? '$0' : fmt(max * t)}
             </text>
           </g>
@@ -317,10 +317,10 @@ function RevenueChart({ months, values }: { months: string[]; values: number[] }
       {/* Area */}
       {area && <path d={area} fill="url(#areaGrad)" />}
       {/* Line */}
-      {path && <path d={path} fill="none" stroke="#FAC51C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
+      {path && <path d={path} fill="none" stroke="#2A9D8F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
       {/* Points */}
       {pts.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="3.5" fill="#FAC51C" />
+        <circle key={i} cx={x} cy={y} r="3.5" fill="#2A9D8F" />
       ))}
       {/* X labels */}
       {months.map((m, i) => {
