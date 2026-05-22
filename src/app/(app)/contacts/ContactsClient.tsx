@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Topbar from '@/components/layout/Topbar'
-import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink, Copy, Check, Trash2, Plus, GitBranch } from 'lucide-react'
+import { Building2, Phone, Mail, Globe, MapPin, User, Share2, FileText, ChevronDown, ChevronUp, ExternalLink, Copy, Check, Trash2, Plus, GitBranch, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -67,7 +67,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function ProspectoRow({ p, inDeal, onDelete, onTogglePipeline }: { p: Prospecto; inDeal: boolean; onDelete: (id: number) => void; onTogglePipeline: (id: number, val: boolean) => void }) {
+function ProspectoRow({ p, inDeal, onDelete, onTogglePipeline, onEdit }: { p: Prospecto; inDeal: boolean; onDelete: (id: number) => void; onTogglePipeline: (id: number, val: boolean) => void; onEdit: (p: Prospecto) => void }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -182,8 +182,24 @@ function ProspectoRow({ p, inDeal, onDelete, onTogglePipeline }: { p: Prospecto;
         </td>
 
         {/* Acciones */}
-        <td style={{ padding: '12px 16px 12px 8px', width: 80 }}>
+        <td style={{ padding: '12px 16px 12px 8px', width: 100 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              onClick={e => { e.stopPropagation(); onEdit(p) }}
+              title="Editar contacto"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 26, height: 26, borderRadius: 6,
+                border: '1px solid var(--border-2)',
+                background: 'transparent',
+                color: 'var(--text-3)',
+                cursor: 'pointer', transition: 'all .15s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,111,170,0.08)'; e.currentTarget.style.color = '#1A6FAA'; e.currentTarget.style.borderColor = 'rgba(26,111,170,0.3)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-3)'; e.currentTarget.style.borderColor = 'var(--border-2)' }}
+            >
+              <Pencil size={12} />
+            </button>
             <button
               onClick={handleTogglePipeline}
               disabled={togglingPipeline}
@@ -476,6 +492,147 @@ function ProspectoRow({ p, inDeal, onDelete, onTogglePipeline }: { p: Prospecto;
   )
 }
 
+type EditForm = {
+  nombre: string; tipo: string; direccion: string
+  telefono: string; telefono_2: string; telefono_3: string
+  email: string; web: string; redes: string; nota: string
+  ciudad: string; cp: string; nicho: string
+  dueno_nombre: string; dueno_telefono: string; dueno_email: string; dueno_nota: string; dueno_fuente: string
+}
+
+function EditarContactoModal({ p, onClose, onSaved }: { p: Prospecto; onClose: () => void; onSaved: (updated: Prospecto) => void }) {
+  const [form, setForm] = useState<EditForm>({
+    nombre: p.nombre ?? '',
+    tipo: p.tipo ?? '',
+    direccion: p.direccion ?? '',
+    telefono: p.telefono ?? '',
+    telefono_2: p.telefono_2 ?? '',
+    telefono_3: p.telefono_3 ?? '',
+    email: p.email ?? '',
+    web: p.web ?? '',
+    redes: p.redes ?? '',
+    nota: p.nota ?? '',
+    ciudad: p.ciudad ?? '',
+    cp: p.cp ?? '',
+    nicho: p.nicho ?? '',
+    dueno_nombre: p.dueno_nombre ?? '',
+    dueno_telefono: p.dueno_telefono ?? '',
+    dueno_email: p.dueno_email ?? '',
+    dueno_nota: p.dueno_nota ?? '',
+    dueno_fuente: p.dueno_fuente ?? '',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const inputStyle = {
+    width: '100%', padding: '7px 10px', borderRadius: 7, fontSize: 13,
+    border: '1px solid var(--border-2)', background: 'var(--surface-2)',
+    color: 'var(--text)', outline: 'none',
+  }
+  const labelStyle = {
+    fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase' as const,
+    letterSpacing: '0.06em', display: 'block', marginBottom: 4,
+  }
+
+  function field(key: keyof EditForm, label: string, required = false) {
+    return (
+      <div>
+        <label style={labelStyle}>{label}{required && <span style={{ color: '#e87171' }}> *</span>}</label>
+        <input value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} style={inputStyle} />
+      </div>
+    )
+  }
+
+  async function handleSave() {
+    if (!form.nombre.trim()) return
+    setSaving(true)
+    const sb = createClient()
+    const patch = {
+      nombre: form.nombre.trim(),
+      tipo: form.tipo || null,
+      direccion: form.direccion || null,
+      telefono: form.telefono || null,
+      telefono_2: form.telefono_2 || null,
+      telefono_3: form.telefono_3 || null,
+      email: form.email || null,
+      web: form.web || null,
+      redes: form.redes || null,
+      nota: form.nota || null,
+      ciudad: form.ciudad || null,
+      cp: form.cp || null,
+      nicho: form.nicho || null,
+      dueno_nombre: form.dueno_nombre || null,
+      dueno_telefono: form.dueno_telefono || null,
+      dueno_email: form.dueno_email || null,
+      dueno_nota: form.dueno_nota || null,
+      dueno_fuente: form.dueno_fuente || null,
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (sb as any).from('prospectos').update(patch).eq('id', p.id)
+    setSaving(false)
+    onSaved({ ...p, ...patch })
+    onClose()
+  }
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      onClick={onClose}
+    >
+      <div
+        style={{ background: 'var(--surface-1)', borderRadius: 14, padding: 28, width: '100%', maxWidth: 660, border: '1px solid var(--border-2)', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', maxHeight: '90vh', overflowY: 'auto' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>Editar contacto</div>
+          <button onClick={onClose} style={{ color: 'var(--text-3)', fontSize: 18, lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div style={{ gridColumn: '1/-1' }}>{field('nombre', 'Nombre del negocio', true)}</div>
+          {field('tipo', 'Tipo')}
+          {field('nicho', 'Nicho')}
+          <div style={{ gridColumn: '1/-1' }}>{field('direccion', 'Dirección')}</div>
+          {field('telefono', 'Teléfono principal')}
+          {field('telefono_2', 'Teléfono 2')}
+          {field('telefono_3', 'Teléfono 3')}
+          {field('email', 'Email')}
+          {field('web', 'Web')}
+          <div style={{ gridColumn: '1/-1' }}>{field('redes', 'Redes sociales (separadas por coma)')}</div>
+          {field('ciudad', 'Ciudad')}
+          {field('cp', 'Código postal')}
+
+          <div style={{ gridColumn: '1/-1', borderTop: '1px solid var(--border)', paddingTop: 14, fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>
+            Propietario
+          </div>
+          {field('dueno_nombre', 'Nombre')}
+          {field('dueno_telefono', 'Teléfono')}
+          <div style={{ gridColumn: '1/-1' }}>{field('dueno_email', 'Email')}</div>
+          {field('dueno_fuente', 'Fuente')}
+          <div style={{ gridColumn: '1/-1' }}>
+            <label style={labelStyle}>Nota propietario</label>
+            <textarea value={form.dueno_nota} onChange={e => setForm(f => ({ ...f, dueno_nota: e.target.value }))} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
+          </div>
+
+          <div style={{ gridColumn: '1/-1', borderTop: '1px solid var(--border)', paddingTop: 14, fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>
+            Notas
+          </div>
+          <div style={{ gridColumn: '1/-1' }}>
+            <label style={labelStyle}>Nota del negocio</label>
+            <textarea value={form.nota} onChange={e => setForm(f => ({ ...f, nota: e.target.value }))} rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
+          <button onClick={onClose} className="btn-ghost">Cancelar</button>
+          <button onClick={handleSave} disabled={saving || !form.nombre.trim()} className="btn-primary">
+            {saving ? 'Guardando…' : 'Guardar cambios'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const EMPTY_FORM = {
   nombre: '', tipo: '', direccion: '', telefono: '', email: '', web: '',
   ciudad: '', cp: '', nicho: '', dueno_nombre: '', dueno_telefono: '', dueno_email: '', nota: '',
@@ -592,6 +749,7 @@ export default function ContactsClient({ prospectos: initial, dealProspectoIds: 
   const [dealProspectoIds, setDealProspectoIds] = useState(initialDealIds)
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [editingProspecto, setEditingProspecto] = useState<Prospecto | null>(null)
   const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('todos')
 
   function isInDeal(p: Prospecto) {
@@ -604,6 +762,10 @@ export default function ContactsClient({ prospectos: initial, dealProspectoIds: 
 
   function handleCreated(p: Prospecto) {
     setProspectos(prev => [p, ...prev])
+  }
+
+  function handleSaved(updated: Prospecto) {
+    setProspectos(prev => prev.map(p => p.id === updated.id ? updated : p))
   }
 
   function handleTogglePipeline(id: number, val: boolean) {
@@ -638,6 +800,7 @@ export default function ContactsClient({ prospectos: initial, dealProspectoIds: 
   return (
     <>
       {showModal && <NuevoContactoModal onClose={() => setShowModal(false)} onCreated={handleCreated} />}
+      {editingProspecto && <EditarContactoModal p={editingProspecto} onClose={() => setEditingProspecto(null)} onSaved={handleSaved} />}
       <Topbar
         title="Contactos"
         subtitle={`${prospectos.length} negocios prospectados`}
@@ -714,7 +877,7 @@ export default function ContactsClient({ prospectos: initial, dealProspectoIds: 
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(p => <ProspectoRow key={p.id} p={p} inDeal={isInDeal(p)} onDelete={handleDelete} onTogglePipeline={handleTogglePipeline} />)}
+                  {filtered.map(p => <ProspectoRow key={p.id} p={p} inDeal={isInDeal(p)} onDelete={handleDelete} onTogglePipeline={handleTogglePipeline} onEdit={setEditingProspecto} />)}
                 </tbody>
               </table>
             </div>
