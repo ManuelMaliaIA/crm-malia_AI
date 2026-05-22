@@ -8,11 +8,13 @@ export default async function NewDealPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const sb = supabase as any
   const [{ data: prospectos }, { data: companies }] = await Promise.all([
-    (supabase as any).from('prospectos').select('id, nombre').order('nombre'),
+    sb.from('prospectos').select('id, nombre').order('nombre'),
     supabase.from('companies').select('id, name').eq('user_id', user.id).order('name'),
   ])
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return (
     <NewDealClient
