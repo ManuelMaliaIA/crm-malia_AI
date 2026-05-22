@@ -179,8 +179,9 @@ function DroppableColumn({ stageKey, children, isOver }: {
   )
 }
 
-function EditDealModal({ deal, onClose, onSave }: {
+function EditDealModal({ deal, prospectos, onClose, onSave }: {
   deal: Deal
+  prospectos: Array<{ id: number; nombre: string }>
   onClose: () => void
   onSave: (updated: Deal) => void
 }) {
@@ -191,6 +192,7 @@ function EditDealModal({ deal, onClose, onSave }: {
     stage: deal.stage,
     close_date: deal.close_date ?? '',
     description: deal.description ?? '',
+    prospecto_id: String(deal.prospecto?.id ?? deal.prospecto_id ?? ''),
   })
   const [saving, setSaving] = useState(false)
 
@@ -204,6 +206,8 @@ function EditDealModal({ deal, onClose, onSave }: {
     const setup = Number(form.setup_fee) || 0
     const monthly = Number(form.monthly_fee) || 0
     const value = setup + monthly * 12
+    const newProspectoId = form.prospecto_id ? Number(form.prospecto_id) : null
+    const oldProspectoId = deal.prospecto?.id ?? deal.prospecto_id ?? null
 
     const sb = createClient()
     await sb.from('deals').update({
@@ -214,9 +218,24 @@ function EditDealModal({ deal, onClose, onSave }: {
       stage: form.stage as DealStage,
       close_date: form.close_date || null,
       description: form.description || null,
+      prospecto_id: newProspectoId,
     }).eq('id', deal.id)
 
-    onSave({ ...deal, title: form.title.trim(), setup_fee: setup, monthly_fee: monthly, value, stage: form.stage, close_date: form.close_date || null, description: form.description || null })
+    // Actualizar en_pipeline: desmarcar el prospecto anterior, marcar el nuevo
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    if (oldProspectoId && oldProspectoId !== newProspectoId) {
+      const { data: otherDeals } = await sb.from('deals').select('id').eq('prospecto_id', oldProspectoId).neq('id', deal.id)
+      if (!otherDeals?.length) {
+        await (sb as any).from('prospectos').update({ en_pipeline: false }).eq('id', oldProspectoId)
+      }
+    }
+    if (newProspectoId) {
+      await (sb as any).from('prospectos').update({ en_pipeline: true }).eq('id', newProspectoId)
+    }
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+
+    const newProspecto = newProspectoId ? prospectos.find(p => p.id === newProspectoId) ?? null : null
+    onSave({ ...deal, title: form.title.trim(), setup_fee: setup, monthly_fee: monthly, value, stage: form.stage, close_date: form.close_date || null, description: form.description || null, prospecto_id: newProspectoId, prospecto: newProspecto })
     setSaving(false)
     onClose()
   }
@@ -260,6 +279,20 @@ function EditDealModal({ deal, onClose, onSave }: {
               <label style={labelStyle}>Mensualidad (€/mes)</label>
               <input type="number" min="0" value={form.monthly_fee} onChange={e => set('monthly_fee', e.target.value)} style={inputStyle} placeholder="0" />
             </div>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Prospecto</label>
+            <select
+              value={form.prospecto_id}
+              onChange={e => set('prospecto_id', e.target.value)}
+              style={{ ...inputStyle, cursor: 'pointer' }}
+            >
+              <option value="">Sin prospecto</option>
+              {prospectos.map(p => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -307,7 +340,7 @@ function EditDealModal({ deal, onClose, onSave }: {
   )
 }
 
-export default function PipelineClient({ deals: initial }: { deals: Deal[]; userId?: string }) {
+export default function PipelineClient({ deals: initial, prospectos = [] }: { deals: Deal[]; prospectos?: Array<{ id: number; nombre: string }>; userId?: string }) {
   const [deals, setDeals] = useState(initial)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [overStageKey, setOverStageKey] = useState<string | null>(null)
@@ -358,6 +391,7 @@ export default function PipelineClient({ deals: initial }: { deals: Deal[]; user
       {editDeal && (
         <EditDealModal
           deal={editDeal}
+          prospectos={prospectos}
           onClose={() => setEditDeal(null)}
           onSave={handleSaveEdit}
         />
