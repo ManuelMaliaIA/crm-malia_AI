@@ -28,7 +28,6 @@ type Deal = {
 
 const STAGES = [
   { key: 'prospecting',   label: 'Prospección', color: '#5e5e5e' },
-  { key: 'qualification', label: 'Calificación', color: '#7b9ef0' },
   { key: 'proposal',      label: 'Propuesta',    color: '#e0aa4a' },
   { key: 'negotiation',   label: 'Negociación',  color: '#d97ae8' },
   { key: 'closed_won',    label: 'Ganado',        color: '#5ac878' },
