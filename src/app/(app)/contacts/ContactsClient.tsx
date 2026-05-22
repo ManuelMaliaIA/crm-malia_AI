@@ -146,16 +146,27 @@ function ProspectoRow({ p, inDeal, onDelete, onTogglePipeline, onEdit }: { p: Pr
         style={{
           cursor: 'pointer',
           borderBottom: open ? 'none' : '1px solid var(--border)',
-          background: open ? 'var(--surface-2)' : inDeal ? 'rgba(26,111,170,0.04)' : 'transparent',
-          borderLeft: inDeal ? '3px solid #1A6FAA' : '3px solid transparent',
+          background: open ? 'var(--surface-2)' : inDeal ? 'rgba(26,111,170,0.06)' : 'transparent',
         }}
-        onMouseEnter={e => { if (!open) e.currentTarget.style.background = inDeal ? 'rgba(26,111,170,0.08)' : 'var(--surface-1)' }}
-        onMouseLeave={e => { if (!open) e.currentTarget.style.background = inDeal ? 'rgba(26,111,170,0.04)' : 'transparent' }}
+        onMouseEnter={e => { if (!open) e.currentTarget.style.background = inDeal ? 'rgba(26,111,170,0.11)' : 'var(--surface-1)' }}
+        onMouseLeave={e => { if (!open) e.currentTarget.style.background = inDeal ? 'rgba(26,111,170,0.06)' : 'transparent' }}
       >
         {/* Avatar + nombre */}
-        <td style={{ padding: '12px 16px', width: 40 }}>
-          <div className="avatar" style={{ width: 34, height: 34, fontSize: 12 }}>
-            {initials(p.nombre)}
+        <td style={{
+          padding: '12px 16px', width: 40,
+          borderLeft: inDeal ? '3px solid #1A6FAA' : '3px solid transparent',
+        }}>
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <div className="avatar" style={{ width: 34, height: 34, fontSize: 12 }}>
+              {initials(p.nombre)}
+            </div>
+            {inDeal && (
+              <span style={{
+                position: 'absolute', bottom: -1, right: -1,
+                width: 10, height: 10, borderRadius: '50%',
+                background: '#1A6FAA', border: '2px solid var(--surface-1)',
+              }} />
+            )}
           </div>
         </td>
         <td style={{ padding: '12px 8px 12px 0', minWidth: 180 }}>
@@ -163,10 +174,10 @@ function ProspectoRow({ p, inDeal, onDelete, onTogglePipeline, onEdit }: { p: Pr
             <div style={{ fontSize: 13, fontWeight: 600 }}>{p.nombre}</div>
             {inDeal && (
               <span style={{
-                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99,
+                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
                 background: '#1A6FAA', color: '#fff',
-                textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0,
-              }}>En deal</span>
+                letterSpacing: '0.04em', flexShrink: 0,
+              }}>EN PIPELINE</span>
             )}
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2 }}>{p.tipo ?? '—'}</div>
@@ -780,7 +791,7 @@ export default function ContactsClient({ prospectos: initial, dealProspectoIds: 
   const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('todos')
 
   function isInDeal(p: Prospecto) {
-    return !!p.en_pipeline || dealProspectoIds.includes(p.id)
+    return !!p.en_pipeline || dealProspectoIds.map(Number).includes(Number(p.id))
   }
 
   function handleDelete(id: number) {
