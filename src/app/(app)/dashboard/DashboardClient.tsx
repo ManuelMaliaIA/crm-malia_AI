@@ -8,7 +8,7 @@ import Link from 'next/link'
 
 interface Props {
   contacts: Array<{ id: string; status: string; created_at: string }>
-  deals: Array<{ id: string; title: string; value: number; stage: string; probability: number; close_date: string | null; created_at: string }>
+  deals: Array<{ id: string; title: string; value: number; setup_fee: number; monthly_fee: number; stage: string; close_date: string | null; created_at: string }>
   activities: Array<{ id: string; type: string; title: string; created_at: string; completed: boolean; due_at: string | null }>
 }
 
@@ -65,7 +65,7 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
   )
 
   // Pipeline funnel
-  const stageOrder = ['prospecting', 'qualification', 'proposal', 'negotiation']
+  const stageOrder = ['prospecting', 'proposal', 'negotiation']
   const funnelData = stageOrder.map(s => ({
     label: STAGE_LABELS[s],
     count: deals.filter(d => d.stage === s).length,
@@ -209,8 +209,14 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
                         </span>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gold)' }}>{fmt(Number(deal.value))}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{deal.probability}%</div>
+                        {(Number(deal.setup_fee) > 0 || Number(deal.monthly_fee) > 0) ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, textAlign: 'right' }}>
+                            {Number(deal.setup_fee) > 0 && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold)' }}>{fmt(Number(deal.setup_fee))} setup</div>}
+                            {Number(deal.monthly_fee) > 0 && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold)' }}>{fmt(Number(deal.monthly_fee))}/mes</div>}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gold)' }}>{fmt(Number(deal.value))}</div>
+                        )}
                       </div>
                     </div>
                   ))}

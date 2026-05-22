@@ -14,7 +14,7 @@ export default async function DashboardPage() {
     { data: activities },
   ] = await Promise.all([
     supabase.from('contacts').select('id, status, created_at').eq('user_id', user.id),
-    supabase.from('deals').select('id, title, value, stage, probability, close_date, created_at').eq('user_id', user.id),
+    supabase.from('deals').select('id, title, value, setup_fee, monthly_fee, stage, close_date, created_at').eq('user_id', user.id),
     supabase.from('activities').select('id, type, title, created_at, completed, due_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
   ])
 

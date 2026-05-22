@@ -106,6 +106,8 @@ export interface Database {
           close_date: string | null
           description: string | null
           user_id: string
+          setup_fee: number
+          monthly_fee: number
         }
         Insert: {
           id?: string
@@ -114,6 +116,8 @@ export interface Database {
           value?: number
           stage?: DealStage
           probability?: number
+          setup_fee?: number
+          monthly_fee?: number
           contact_id?: string | null
           company_id?: string | null
           owner?: string | null
@@ -128,6 +132,8 @@ export interface Database {
           value?: number
           stage?: DealStage
           probability?: number
+          setup_fee?: number
+          monthly_fee?: number
           contact_id?: string | null
           company_id?: string | null
           owner?: string | null
