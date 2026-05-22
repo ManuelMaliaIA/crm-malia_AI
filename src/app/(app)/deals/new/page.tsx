@@ -8,14 +8,15 @@ export default async function NewDealPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [{ data: contacts }, { data: companies }] = await Promise.all([
-    supabase.from('contacts').select('id, first_name, last_name').eq('user_id', user.id).order('first_name'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [{ data: prospectos }, { data: companies }] = await Promise.all([
+    (supabase as any).from('prospectos').select('id, nombre').order('nombre'),
     supabase.from('companies').select('id, name').eq('user_id', user.id).order('name'),
   ])
 
   return (
     <NewDealClient
-      contacts={contacts ?? []}
+      prospectos={prospectos ?? []}
       companies={companies ?? []}
       userId={user.id}
     />

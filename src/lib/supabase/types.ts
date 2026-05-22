@@ -108,6 +108,7 @@ export interface Database {
           user_id: string
           setup_fee: number
           monthly_fee: number
+          prospecto_id: number | null
         }
         Insert: {
           id?: string
@@ -118,6 +119,7 @@ export interface Database {
           probability?: number
           setup_fee?: number
           monthly_fee?: number
+          prospecto_id?: number | null
           contact_id?: string | null
           company_id?: string | null
           owner?: string | null
@@ -134,6 +136,7 @@ export interface Database {
           probability?: number
           setup_fee?: number
           monthly_fee?: number
+          prospecto_id?: number | null
           contact_id?: string | null
           company_id?: string | null
           owner?: string | null

@@ -29,8 +29,10 @@ type Deal = {
   close_date: string | null
   created_at: string
   description: string | null
+  prospecto_id?: number | null
   contacts?: { first_name: string; last_name: string } | null
   companies?: { name: string } | null
+  prospecto?: { id: number; nombre: string } | null
 }
 
 const STAGES = [
@@ -55,9 +57,8 @@ function dealAnnualValue(d: Deal) {
 }
 
 function DealCardDisplay({ deal, isDragging = false }: { deal: Deal; isDragging?: boolean }) {
-  const contact = deal.contacts
-    ? `${deal.contacts.first_name} ${deal.contacts.last_name}`
-    : deal.companies?.name
+  const contact = deal.prospecto?.nombre
+    ?? (deal.contacts ? `${deal.contacts.first_name} ${deal.contacts.last_name}` : deal.companies?.name)
 
   const setup = Number(deal.setup_fee) || 0
   const monthly = Number(deal.monthly_fee) || 0
@@ -93,6 +94,19 @@ function DraggableDeal({ deal, onDelete, onEdit }: { deal: Deal; onDelete: (id: 
     setDeleting(true)
     const sb = createClient()
     await sb.from('deals').delete().eq('id', deal.id)
+
+    // Si había un prospecto vinculado, comprobar si quedan más deals suyos
+    if (deal.prospecto?.id) {
+      const { data: remaining } = await sb
+        .from('deals')
+        .select('id')
+        .eq('prospecto_id', deal.prospecto.id)
+      if (!remaining || remaining.length === 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (sb as any).from('prospectos').update({ en_pipeline: false }).eq('id', deal.prospecto.id)
+      }
+    }
+
     onDelete(deal.id)
   }
 

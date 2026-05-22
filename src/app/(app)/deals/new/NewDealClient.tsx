@@ -15,7 +15,7 @@ const STAGES = [
 ]
 
 interface Props {
-  contacts: Array<{ id: string; first_name: string; last_name: string }>
+  prospectos: Array<{ id: number; nombre: string }>
   companies: Array<{ id: string; name: string }>
   userId: string
 }
@@ -26,7 +26,7 @@ function fmt(n: number) {
   return `€${Math.round(n)}`
 }
 
-export default function NewDealClient({ contacts, companies, userId }: Props) {
+export default function NewDealClient({ prospectos, companies, userId }: Props) {
   const router = useRouter()
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -37,7 +37,7 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
     setup_fee: '',
     monthly_fee: '',
     stage: 'prospecting',
-    contact_id: '',
+    prospecto_id: '',
     company_id: '',
     close_date: '',
     description: '',
@@ -45,7 +45,15 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
   })
 
   function set(field: string, value: string) {
-    setForm(f => ({ ...f, [field]: value }))
+    setForm(f => {
+      const next = { ...f, [field]: value }
+      // Auto-fill title with prospecto name if title is still empty
+      if (field === 'prospecto_id' && !f.title) {
+        const p = prospectos.find(p => String(p.id) === value)
+        if (p) next.title = p.nombre
+      }
+      return next
+    })
     setErrors(e => ({ ...e, [field]: '' }))
   }
 
@@ -62,6 +70,8 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
 
     setLoading(true)
     const sb = createClient()
+    const prospectoId = form.prospecto_id ? Number(form.prospecto_id) : null
+
     const { error } = await sb.from('deals').insert({
       title: form.title.trim(),
       setup_fee: setupNum,
@@ -69,13 +79,19 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
       value: annualValue,
       stage: form.stage as DealStage,
       probability: 0,
-      contact_id: form.contact_id || null,
+      prospecto_id: prospectoId,
       company_id: form.company_id || null,
       close_date: form.close_date || null,
       description: form.description || null,
       owner: form.owner || null,
       user_id: userId,
     })
+
+    if (!error && prospectoId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (sb as any).from('prospectos').update({ en_pipeline: true }).eq('id', prospectoId)
+    }
+
     setLoading(false)
     if (error) { setErrors({ title: error.message }); return }
     setSuccess(true)
@@ -112,7 +128,7 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
             <div style={{ display: 'flex', gap: 12 }}>
               <button className="btn-ghost" onClick={() => {
                 setSuccess(false)
-                setForm({ title: '', setup_fee: '', monthly_fee: '', stage: 'prospecting', contact_id: '', company_id: '', close_date: '', description: '', owner: '' })
+                setForm({ title: '', setup_fee: '', monthly_fee: '', stage: 'prospecting', prospecto_id: '', company_id: '', close_date: '', description: '', owner: '' })
               }}>
                 Crear otro
               </button>
@@ -144,7 +160,6 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-                {/* Información básica */}
                 <div className="card">
                   <div className="card-title" style={{ marginBottom: 16 }}>Información básica</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -159,7 +174,6 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
                       {errors.title && <span className="form-error">{errors.title}</span>}
                     </div>
 
-                    {/* Setup + mensualidad */}
                     <div className="grid-2">
                       <div className="form-group">
                         <label className="form-label">Setup (pago único, €)</label>
@@ -209,7 +223,6 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
                   </div>
                 </div>
 
-                {/* Etapa */}
                 <div className="card">
                   <div className="card-title" style={{ marginBottom: 16 }}>Etapa</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -233,16 +246,15 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
                   </div>
                 </div>
 
-                {/* Asignación */}
                 <div className="card">
                   <div className="card-title" style={{ marginBottom: 16 }}>Asignación</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <div className="form-group">
-                      <label className="form-label">Contacto</label>
-                      <select className="form-input form-select" value={form.contact_id} onChange={e => set('contact_id', e.target.value)}>
-                        <option value="">Sin contacto</option>
-                        {contacts.map(c => (
-                          <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
+                      <label className="form-label">Prospecto</label>
+                      <select className="form-input form-select" value={form.prospecto_id} onChange={e => set('prospecto_id', e.target.value)}>
+                        <option value="">Sin prospecto</option>
+                        {prospectos.map(p => (
+                          <option key={p.id} value={p.id}>{p.nombre}</option>
                         ))}
                       </select>
                     </div>
@@ -270,7 +282,6 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
                 </div>
               </div>
 
-              {/* Resumen lateral */}
               <div style={{ position: 'sticky', top: 20 }}>
                 <div className="card">
                   <div className="card-title" style={{ marginBottom: 16 }}>Resumen</div>
@@ -281,6 +292,14 @@ export default function NewDealClient({ contacts, companies, userId }: Props) {
                         {form.title || '—'}
                       </span>
                     </div>
+                    {form.prospecto_id && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                        <span style={{ color: 'var(--text-3)' }}>Prospecto</span>
+                        <span style={{ fontWeight: 500, maxWidth: 160, textAlign: 'right' }} className="truncate">
+                          {prospectos.find(p => String(p.id) === form.prospecto_id)?.nombre}
+                        </span>
+                      </div>
+                    )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                       <span style={{ color: 'var(--text-3)' }}>Setup</span>
                       <span style={{ fontWeight: 600, color: 'var(--gold)' }}>

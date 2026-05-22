@@ -8,9 +8,10 @@ export default async function PipelinePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: deals } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: deals } = await (supabase as any)
     .from('deals')
-    .select('*, contacts(first_name, last_name), companies(name)')
+    .select('*, contacts(first_name, last_name), companies(name), prospecto:prospectos(id, nombre)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
