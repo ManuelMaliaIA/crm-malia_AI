@@ -14,7 +14,7 @@ import {
   rectIntersection,
 } from '@dnd-kit/core'
 import Topbar from '@/components/layout/Topbar'
-import { Plus } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { DealStage } from '@/lib/supabase/types'
@@ -57,16 +57,50 @@ function DealCardDisplay({ deal, isDragging = false }: { deal: Deal; isDragging?
   )
 }
 
-function DraggableDeal({ deal }: { deal: Deal }) {
+function DraggableDeal({ deal, onDelete }: { deal: Deal; onDelete: (id: string) => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: deal.id })
+  const [hovered, setHovered] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation()
+    e.preventDefault()
+    if (!confirm(`¿Eliminar "${deal.title}"?`)) return
+    setDeleting(true)
+    const sb = createClient()
+    await sb.from('deals').delete().eq('id', deal.id)
+    onDelete(deal.id)
+  }
+
   return (
     <div
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      style={{ opacity: isDragging ? 0.35 : 1, cursor: 'grab', touchAction: 'none' }}
+      style={{ opacity: isDragging ? 0.35 : 1, cursor: 'grab', touchAction: 'none', position: 'relative' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       <DealCardDisplay deal={deal} />
+      {hovered && !isDragging && (
+        <button
+          onPointerDown={e => e.stopPropagation()}
+          onClick={handleDelete}
+          disabled={deleting}
+          title="Eliminar deal"
+          style={{
+            position: 'absolute', top: 8, right: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 22, height: 22, borderRadius: 5,
+            border: '1px solid rgba(220,79,79,0.3)',
+            background: 'rgba(220,79,79,0.1)',
+            color: '#dc4f4f',
+            cursor: deleting ? 'not-allowed' : 'pointer',
+          }}
+        >
+          <Trash2 size={11} />
+        </button>
+      )}
     </div>
   )
 }
@@ -96,6 +130,10 @@ export default function PipelineClient({ deals: initial }: { deals: Deal[]; user
   )
 
   const activeDeal = activeId ? deals.find(d => d.id === activeId) : null
+
+  function handleDelete(id: string) {
+    setDeals(prev => prev.filter(d => d.id !== id))
+  }
 
   function onDragStart({ active }: DragStartEvent) {
     setActiveId(active.id as string)
@@ -169,7 +207,7 @@ export default function PipelineClient({ deals: initial }: { deals: Deal[]; user
                       isOver={overStageKey === stage.key}
                     >
                       {stageDeals.map(deal => (
-                        <DraggableDeal key={deal.id} deal={deal} />
+                        <DraggableDeal key={deal.id} deal={deal} onDelete={handleDelete} />
                       ))}
                       {stageDeals.length === 0 && (
                         <div style={{
