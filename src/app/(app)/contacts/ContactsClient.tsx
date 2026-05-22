@@ -67,7 +67,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function ProspectoRow({ p, onDelete, onTogglePipeline }: { p: Prospecto; onDelete: (id: number) => void; onTogglePipeline: (id: number, val: boolean) => void }) {
+function ProspectoRow({ p, inDeal, onDelete, onTogglePipeline }: { p: Prospecto; inDeal: boolean; onDelete: (id: number) => void; onTogglePipeline: (id: number, val: boolean) => void }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -110,9 +110,14 @@ function ProspectoRow({ p, onDelete, onTogglePipeline }: { p: Prospecto; onDelet
       {/* Fila colapsada */}
       <tr
         onClick={() => setOpen(o => !o)}
-        style={{ cursor: 'pointer', borderBottom: open ? 'none' : '1px solid var(--border)', background: open ? 'var(--surface-2)' : 'transparent' }}
-        onMouseEnter={e => { if (!open) e.currentTarget.style.background = 'var(--surface-1)' }}
-        onMouseLeave={e => { if (!open) e.currentTarget.style.background = 'transparent' }}
+        style={{
+          cursor: 'pointer',
+          borderBottom: open ? 'none' : '1px solid var(--border)',
+          background: open ? 'var(--surface-2)' : inDeal ? 'rgba(26,111,170,0.04)' : 'transparent',
+          borderLeft: inDeal ? '3px solid #1A6FAA' : '3px solid transparent',
+        }}
+        onMouseEnter={e => { if (!open) e.currentTarget.style.background = inDeal ? 'rgba(26,111,170,0.08)' : 'var(--surface-1)' }}
+        onMouseLeave={e => { if (!open) e.currentTarget.style.background = inDeal ? 'rgba(26,111,170,0.04)' : 'transparent' }}
       >
         {/* Avatar + nombre */}
         <td style={{ padding: '12px 16px', width: 40 }}>
@@ -123,12 +128,12 @@ function ProspectoRow({ p, onDelete, onTogglePipeline }: { p: Prospecto; onDelet
         <td style={{ padding: '12px 8px 12px 0', minWidth: 180 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <div style={{ fontSize: 13, fontWeight: 600 }}>{p.nombre}</div>
-            {p.en_pipeline && (
+            {inDeal && (
               <span style={{
-                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 99,
-                background: 'rgba(26,111,170,0.12)', color: '#1A6FAA',
+                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99,
+                background: '#1A6FAA', color: '#fff',
                 textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0,
-              }}>En pipeline</span>
+              }}>En deal</span>
             )}
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2 }}>{p.tipo ?? '—'}</div>
@@ -582,11 +587,16 @@ function NuevoContactoModal({ onClose, onCreated }: { onClose: () => void; onCre
 
 type ScoreFilter = 'todos' | 'alto' | 'medio' | 'bajo' | 'sin_score' | 'pipeline'
 
-export default function ContactsClient({ prospectos: initial }: { prospectos: Prospecto[]; userId: string }) {
+export default function ContactsClient({ prospectos: initial, dealProspectoIds: initialDealIds }: { prospectos: Prospecto[]; dealProspectoIds: number[]; userId: string }) {
   const [prospectos, setProspectos] = useState(initial)
+  const [dealProspectoIds, setDealProspectoIds] = useState(initialDealIds)
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('todos')
+
+  function isInDeal(p: Prospecto) {
+    return !!p.en_pipeline || dealProspectoIds.includes(p.id)
+  }
 
   function handleDelete(id: number) {
     setProspectos(prev => prev.filter(p => p.id !== id))
@@ -598,6 +608,8 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
 
   function handleTogglePipeline(id: number, val: boolean) {
     setProspectos(prev => prev.map(p => p.id === id ? { ...p, en_pipeline: val } : p))
+    if (val) setDealProspectoIds(prev => prev.includes(id) ? prev : [...prev, id])
+    else setDealProspectoIds(prev => prev.filter(x => x !== id))
   }
 
   const filtered = prospectos
@@ -609,14 +621,19 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
         p.direccion?.toLowerCase().includes(search.toLowerCase())
       )) return false
 
-      if (scoreFilter === 'pipeline') return !!p.en_pipeline
+      if (scoreFilter === 'pipeline') return isInDeal(p)
       if (scoreFilter === 'alto') return p.score != null && p.score >= 70
       if (scoreFilter === 'medio') return p.score != null && p.score >= 40 && p.score < 70
       if (scoreFilter === 'bajo') return p.score != null && p.score < 40
       if (scoreFilter === 'sin_score') return p.score == null
       return true
     })
-    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
+    .sort((a, b) => {
+      const aDeal = isInDeal(a) ? 1 : 0
+      const bDeal = isInDeal(b) ? 1 : 0
+      if (bDeal !== aDeal) return bDeal - aDeal
+      return (b.score ?? -1) - (a.score ?? -1)
+    })
 
   return (
     <>
@@ -661,7 +678,7 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
                 {f.key !== 'todos' && (
                   <span style={{ marginLeft: 6, opacity: 0.7 }}>
                     ({prospectos.filter(p =>
-                      f.key === 'pipeline' ? !!p.en_pipeline :
+                      f.key === 'pipeline' ? isInDeal(p) :
                       f.key === 'alto' ? (p.score != null && p.score >= 70) :
                       f.key === 'medio' ? (p.score != null && p.score >= 40 && p.score < 70) :
                       f.key === 'bajo' ? (p.score != null && p.score < 40) :
@@ -697,7 +714,7 @@ export default function ContactsClient({ prospectos: initial }: { prospectos: Pr
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(p => <ProspectoRow key={p.id} p={p} onDelete={handleDelete} onTogglePipeline={handleTogglePipeline} />)}
+                  {filtered.map(p => <ProspectoRow key={p.id} p={p} inDeal={isInDeal(p)} onDelete={handleDelete} onTogglePipeline={handleTogglePipeline} />)}
                 </tbody>
               </table>
             </div>
