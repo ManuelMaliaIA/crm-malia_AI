@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Users, Briefcase, Building2,
+  LayoutDashboard, Users, Briefcase,
   Activity, Settings, Plus, Zap
 } from 'lucide-react'
 
@@ -11,7 +11,6 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/contacts', label: 'Contactos', icon: Users, badge: null },
   { href: '/pipeline', label: 'Pipeline', icon: Briefcase },
-  { href: '/companies', label: 'Empresas', icon: Building2 },
   { href: '/activities', label: 'Actividades', icon: Activity },
 ]
 
