@@ -56,6 +56,39 @@ function InfoItem({ icon, children }: { icon: React.ReactNode; children: React.R
   )
 }
 
+const PLATFORMS = [
+  { key: 'ig',  label: 'IG',  match: ['instagram'],              bg: '#E1306C', color: '#fff' },
+  { key: 'fb',  label: 'FB',  match: ['facebook'],               bg: '#1877F2', color: '#fff' },
+  { key: 'tt',  label: 'TT',  match: ['tiktok'],                 bg: '#010101', color: '#fff' },
+  { key: 'wa',  label: 'WA',  match: ['wa.me', 'whatsapp'],      bg: '#25D366', color: '#fff' },
+  { key: 'ta',  label: 'TA',  match: ['tripadvisor'],            bg: '#34E0A1', color: '#000' },
+  { key: 'g',   label: 'G',   match: ['google', 'maps.google'],  bg: '#4285F4', color: '#fff' },
+  { key: 'x',   label: 'X',   match: ['twitter.com', 'x.com'],  bg: '#000', color: '#fff' },
+  { key: 'yt',  label: 'YT',  match: ['youtube'],                bg: '#FF0000', color: '#fff' },
+]
+
+function PresenciaChips({ web, redes }: { web: string | null; redes: string | null }) {
+  const links = (redes ?? '').toLowerCase()
+  const detected = PLATFORMS.filter(p => p.match.some(m => links.includes(m)))
+  if (!web && detected.length === 0) return <span style={{ fontSize: 12, color: 'var(--text-4)' }}>—</span>
+  return (
+    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+      {web && (
+        <span title={web} style={{
+          fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+          background: '#1A6FAA', color: '#fff', letterSpacing: '0.03em',
+        }}>WEB</span>
+      )}
+      {detected.map(p => (
+        <span key={p.key} title={p.key.toUpperCase()} style={{
+          fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+          background: p.bg, color: p.color, letterSpacing: '0.03em',
+        }}>{p.label}</span>
+      ))}
+    </div>
+  )
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
@@ -153,15 +186,9 @@ function ProspectoRow({ p, inDeal, onDelete, onTogglePipeline, onEdit }: { p: Pr
           ) : <span style={{ fontSize: 12, color: 'var(--text-3)' }}>—</span>}
         </td>
 
-        {/* Web */}
-        <td style={{ padding: '12px 8px', minWidth: 140 }}>
-          {p.web ? (
-            <a href={p.web.startsWith('http') ? p.web : `https://${p.web}`} target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}
-              onClick={e => e.stopPropagation()}>
-              <Globe size={11} /> {p.web.replace(/^https?:\/\//, '').slice(0, 24)}
-            </a>
-          ) : <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Sin web</span>}
+        {/* Presencia digital */}
+        <td style={{ padding: '12px 8px', minWidth: 130 }} onClick={e => e.stopPropagation()}>
+          <PresenciaChips web={p.web} redes={p.redes} />
         </td>
 
         {/* Ciudad */}
@@ -870,7 +897,7 @@ export default function ContactsClient({ prospectos: initial, dealProspectoIds: 
                     <th colSpan={2} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Negocio</th>
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Dirección</th>
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Teléfono</th>
-                    <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Web</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Presencia</th>
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Ciudad</th>
                     <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score</th>
                     <th style={{ width: 60 }} />
