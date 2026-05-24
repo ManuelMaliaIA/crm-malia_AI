@@ -157,6 +157,12 @@ function RoadmapFlowInner({
   searchQuery: string
 }) {
   /* eslint-disable @typescript-eslint/no-explicit-any */
+  // Refs so callbacks never go stale but don't invalidate memos on every render
+  const onProjectChangeRef = useRef(onProjectChange)
+  onProjectChangeRef.current = onProjectChange
+  const onEditNodeRef = useRef(onEditNode)
+  onEditNodeRef.current = onEditNode
+
   const enrichedNodes = useMemo(() => {
     const nextId = findNextActionId(project.nodes, project.edges)
     const q = searchQuery.trim().toLowerCase()
@@ -167,8 +173,8 @@ function RoadmapFlowInner({
         data: {
           ...n.data,
           isNextAction: n.id === nextId,
-          onEdit:   () => onEditNode(n.id),
-          onDelete: () => onProjectChange(prev => prev.map(p =>
+          onEdit:   () => onEditNodeRef.current(n.id),
+          onDelete: () => onProjectChangeRef.current(prev => prev.map(p =>
             p.id !== project.id ? p : {
               ...p,
               nodes: p.nodes.filter(node => node.id !== n.id),
@@ -177,7 +183,7 @@ function RoadmapFlowInner({
           )),
         },
       }))
-  }, [project, onProjectChange, onEditNode, searchQuery])
+  }, [project.nodes, project.edges, project.id, searchQuery])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(enrichedNodes as any)
   const [edges, setEdges, onEdgesChange] = useEdgesState(project.edges as any)
@@ -185,23 +191,37 @@ function RoadmapFlowInner({
   useEffect(() => { setNodes(enrichedNodes as any) }, [enrichedNodes])
   useEffect(() => { setEdges(project.edges as any)  }, [project.edges])
 
+  const onNodesChangeWithSync = useCallback((changes: any[]) => {
+    onNodesChange(changes)
+    const removedIds = new Set(changes.filter((c: any) => c.type === 'remove').map((c: any) => c.id))
+    if (removedIds.size > 0) {
+      onProjectChangeRef.current(prev => prev.map(p =>
+        p.id !== project.id ? p : {
+          ...p,
+          nodes: p.nodes.filter(n => !removedIds.has(n.id)),
+          edges: p.edges.filter(e => !removedIds.has(e.source) && !removedIds.has(e.target)),
+        }
+      ))
+    }
+  }, [onNodesChange, project.id])
+
   const onEdgesChangeWithSync = useCallback((changes: any[]) => {
     onEdgesChange(changes)
     const removedIds = new Set(changes.filter((c: any) => c.type === 'remove').map((c: any) => c.id))
     if (removedIds.size > 0) {
-      onProjectChange(prev => prev.map(p =>
+      onProjectChangeRef.current(prev => prev.map(p =>
         p.id !== project.id ? p : { ...p, edges: p.edges.filter(e => !removedIds.has(e.id)) }
       ))
     }
-  }, [onEdgesChange, onProjectChange, project.id])
+  }, [onEdgesChange, project.id])
 
   const onConnect = useCallback((params: any) => {
     const newEdge = { ...params, id: `e${params.source}-${params.target}` }
     setEdges((eds: any) => addEdge(newEdge, eds))
-    onProjectChange(prev => prev.map(p =>
+    onProjectChangeRef.current(prev => prev.map(p =>
       p.id !== project.id ? p : { ...p, edges: addEdge(newEdge, p.edges as any) as any }
     ))
-  }, [project.id, onProjectChange, setEdges])
+  }, [project.id, setEdges])
 
   const onNodeDragStop = useCallback((_: any, node: any) => {
     onPositionChange(prev => prev.map(p =>
@@ -236,7 +256,7 @@ function RoadmapFlowInner({
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
+          onNodesChange={onNodesChangeWithSync}
           onEdgesChange={onEdgesChangeWithSync}
           onConnect={onConnect}
           onNodeDragStop={onNodeDragStop}
