@@ -185,6 +185,16 @@ function RoadmapFlowInner({
   useEffect(() => { setNodes(enrichedNodes as any) }, [enrichedNodes])
   useEffect(() => { setEdges(project.edges as any)  }, [project.edges])
 
+  const onEdgesChangeWithSync = useCallback((changes: any[]) => {
+    onEdgesChange(changes)
+    const removedIds = new Set(changes.filter((c: any) => c.type === 'remove').map((c: any) => c.id))
+    if (removedIds.size > 0) {
+      onProjectChange(prev => prev.map(p =>
+        p.id !== project.id ? p : { ...p, edges: p.edges.filter(e => !removedIds.has(e.id)) }
+      ))
+    }
+  }, [onEdgesChange, onProjectChange, project.id])
+
   const onConnect = useCallback((params: any) => {
     const newEdge = { ...params, id: `e${params.source}-${params.target}` }
     setEdges((eds: any) => addEdge(newEdge, eds))
@@ -227,7 +237,7 @@ function RoadmapFlowInner({
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
+          onEdgesChange={onEdgesChangeWithSync}
           onConnect={onConnect}
           onNodeDragStop={onNodeDragStop}
           nodeTypes={nodeTypes}
