@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, Briefcase,
-  Activity, Settings, Plus, Zap
+  Activity, Settings, Plus, Zap, Map
 } from 'lucide-react'
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/contacts', label: 'Contactos', icon: Users, badge: null },
   { href: '/pipeline', label: 'Pipeline', icon: Briefcase },
   { href: '/activities', label: 'Actividades', icon: Activity },
+  { href: '/roadmap', label: 'Roadmap', icon: Map },
 ]
 
 interface SidebarProps {
