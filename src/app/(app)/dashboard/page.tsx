@@ -18,7 +18,7 @@ export default async function DashboardPage() {
     supabase.from('contacts').select('id, status, created_at').eq('user_id', user.id),
     supabase.from('deals').select('id, title, value, setup_fee, monthly_fee, stage, close_date, created_at').eq('user_id', user.id),
     supabase.from('activities').select('id, type, title, created_at, completed, due_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
-    (supabase as any).from('roadmap_projects').select('id, name, nodes').eq('user_id', user.id).order('created_at', { ascending: true }),
+    (supabase as any).from('roadmap_projects').select('id, name, nodes, edges').eq('user_id', user.id).order('created_at', { ascending: true }),
   ])
   /* eslint-enable @typescript-eslint/no-explicit-any */
 

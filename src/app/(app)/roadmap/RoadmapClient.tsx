@@ -24,6 +24,7 @@ type NodeData = {
   isNextAction?: boolean
   onEdit?: () => void
   onDelete?: () => void
+  onCreateTask?: () => void
   [key: string]: unknown
 }
 
@@ -86,6 +87,7 @@ function CustomNode({ data, selected }: { data: NodeData; selected?: boolean }) 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7 }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.accent, flexShrink: 0, marginTop: 4 }} />
           <span style={{ color: '#fafafa', fontWeight: 600, fontSize: 12.5, lineHeight: 1.35, flex: 1, wordBreak: 'break-word' }}>{data.label}</span>
+          <button onClick={e => { e.stopPropagation(); data.onCreateTask?.() }} title="Crear tarea en CRM" style={{ background: 'none', border: 'none', color: '#3f3f46', cursor: 'pointer', fontSize: 12, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>⊕</button>
           <button onClick={e => { e.stopPropagation(); data.onDelete?.() }} style={{ background: 'none', border: 'none', color: '#3f3f46', cursor: 'pointer', fontSize: 15, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
         </div>
         {data.description && (
@@ -147,13 +149,14 @@ function findNextActionId(nodes: FlowNode[], edges: FlowEdge[]): string | null {
 
 /* ─── RoadmapFlowInner ───────────────────────────────────── */
 function RoadmapFlowInner({
-  project, onProjectChange, onPositionChange, onEditNode, onCreateAt, searchQuery,
+  project, onProjectChange, onPositionChange, onEditNode, onCreateAt, onAddTaskFromNode, searchQuery,
 }: {
   project: Project
   onProjectChange: (updater: (prev: Project[]) => Project[]) => void
   onPositionChange: (updater: (prev: Project[]) => Project[]) => void
   onEditNode: (id: string) => void
   onCreateAt: (pos: { x: number; y: number }) => void
+  onAddTaskFromNode: (data: { label: string; notes: string; description: string }) => void
   searchQuery: string
 }) {
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -162,6 +165,8 @@ function RoadmapFlowInner({
   onProjectChangeRef.current = onProjectChange
   const onEditNodeRef = useRef(onEditNode)
   onEditNodeRef.current = onEditNode
+  const onAddTaskFromNodeRef = useRef(onAddTaskFromNode)
+  onAddTaskFromNodeRef.current = onAddTaskFromNode
 
   const enrichedNodes = useMemo(() => {
     const nextId = findNextActionId(project.nodes, project.edges)
@@ -173,7 +178,8 @@ function RoadmapFlowInner({
         data: {
           ...n.data,
           isNextAction: n.id === nextId,
-          onEdit:   () => onEditNodeRef.current(n.id),
+          onEdit:       () => onEditNodeRef.current(n.id),
+          onCreateTask: () => onAddTaskFromNodeRef.current({ label: n.data.label, notes: n.data.notes ?? '', description: n.data.description ?? '' }),
           onDelete: () => onProjectChangeRef.current(prev => prev.map(p =>
             p.id !== project.id ? p : {
               ...p,
@@ -566,12 +572,55 @@ function EditNodeModal({ node, onClose, onSave }: {
   )
 }
 
+/* ─── TaskModal ──────────────────────────────────────────── */
+function TaskModal({ nodeData, onClose, onConfirm }: {
+  nodeData: { label: string; notes: string; description: string }
+  onClose: () => void
+  onConfirm: (title: string, body: string) => Promise<void>
+}) {
+  const [title, setTitle] = useState(nodeData.label)
+  const [body, setBody]   = useState([nodeData.description, nodeData.notes].filter(Boolean).join('\n'))
+  const [saving, setSaving] = useState(false)
+  const lbl: React.CSSProperties = { display: 'block', color: '#52525b', fontSize: 11, marginBottom: 5, marginTop: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }
+  const inp: React.CSSProperties = { width: '100%', background: '#0c0c0e', border: '1px solid #27272a', borderRadius: 6, padding: '8px 10px', color: '#fafafa', fontSize: 13, boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!title.trim()) return
+    setSaving(true)
+    await onConfirm(title.trim(), body.trim())
+    setSaving(false)
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+      <form onSubmit={handleSubmit} style={{ background: '#111113', border: '1px solid #27272a', borderRadius: 12, padding: 28, width: 360, boxShadow: '0 20px 60px rgba(0,0,0,0.7)' }}>
+        <h3 style={{ margin: '0 0 4px', color: '#fafafa', fontSize: 15, fontWeight: 700 }}>Crear tarea en CRM</h3>
+        <p style={{ margin: '0 0 20px', color: '#52525b', fontSize: 12 }}>Se añadirá a tus Actividades como tarea pendiente.</p>
+        <label style={lbl}>Título</label>
+        <input autoFocus value={title} onChange={e => setTitle(e.target.value)} style={inp} required />
+        <label style={lbl}>Notas (opcional)</label>
+        <textarea value={body} onChange={e => setBody(e.target.value)}
+          style={{ ...inp, resize: 'vertical', minHeight: 72, lineHeight: 1.5 }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+          <button type="button" onClick={onClose} style={{ flex: 1, padding: '9px 0', background: '#18181b', border: '1px solid #27272a', borderRadius: 6, color: '#71717a', cursor: 'pointer', fontSize: 13 }}>Cancelar</button>
+          <button type="submit" disabled={saving} style={{ flex: 2, padding: '9px 0', background: '#1A6FAA', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+            {saving ? 'Guardando…' : '✓ Crear tarea'}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
 /* ─── Main Client ────────────────────────────────────────── */
 export default function RoadmapClient({ projects: initial, prospectos, userId }: { projects: Project[]; prospectos: Prospecto[]; userId: string }) {
   const [projects, setProjects]           = useState<Project[]>(initial)
   const [activeId, setActiveId]           = useState<string | null>(initial[0]?.id ?? null)
   const [showAddModal, setShowAddModal]   = useState(false)
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
+  const [taskFromNode, setTaskFromNode]   = useState<{ label: string; notes: string; description: string } | null>(null)
+  const [taskCreated, setTaskCreated]     = useState(false)
   const [searchQuery, setSearchQuery]     = useState('')
   const dragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -614,6 +663,17 @@ export default function RoadmapClient({ projects: initial, prospectos, userId }:
       }
       return next
     })
+  }
+
+  async function confirmCreateTask(title: string, body: string) {
+    const sb = createClient()
+    await sb.from('activities').insert({
+      type: 'task', title, body: body || null,
+      user_id: userId, completed: false,
+    })
+    setTaskFromNode(null)
+    setTaskCreated(true)
+    setTimeout(() => setTaskCreated(false), 2500)
   }
 
   const handleLinkProspecto = useCallback((projectId: string, prospectoId: number | null) => {
@@ -757,6 +817,7 @@ export default function RoadmapClient({ projects: initial, prospectos, userId }:
                 onPositionChange={updateProjectsDebounced}
                 onEditNode={setEditingNodeId}
                 onCreateAt={handleCreateNodeAt}
+                onAddTaskFromNode={setTaskFromNode}
                 searchQuery={searchQuery}
               />
             </ReactFlowProvider>
@@ -781,6 +842,24 @@ export default function RoadmapClient({ projects: initial, prospectos, userId }:
           onClose={() => setEditingNodeId(null)}
           onSave={updates => { handleSaveNode(editingNodeId!, updates); setEditingNodeId(null) }}
         />
+      )}
+      {taskFromNode && (
+        <TaskModal
+          nodeData={taskFromNode}
+          onClose={() => setTaskFromNode(null)}
+          onConfirm={confirmCreateTask}
+        />
+      )}
+      {taskCreated && (
+        <div style={{
+          position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+          background: '#052e16', border: '1px solid #22c55e', borderRadius: 8,
+          padding: '10px 20px', color: '#22c55e', fontSize: 13, fontWeight: 600,
+          zIndex: 2000, boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          ✓ Tarea creada en Actividades
+        </div>
       )}
     </div>
   )

@@ -10,7 +10,11 @@ interface Props {
   contacts: Array<{ id: string; status: string; created_at: string }>
   deals: Array<{ id: string; title: string; value: number; setup_fee: number; monthly_fee: number; stage: string; close_date: string | null; created_at: string }>
   activities: Array<{ id: string; type: string; title: string; created_at: string; completed: boolean; due_at: string | null }>
-  roadmapProjects: Array<{ id: string; name: string; nodes: Array<{ data: { status: string } }> }>
+  roadmapProjects: Array<{
+    id: string; name: string
+    nodes: Array<{ id: string; data: { status: string; label: string } }>
+    edges: Array<{ source: string; target: string }>
+  }>
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -49,6 +53,21 @@ export default function DashboardClient({ contacts, deals, activities, roadmapPr
   const wonDeals = deals.filter(d => d.stage === 'closed_won')
   const totalRevenue = wonDeals.reduce((s, d) => s + Number(d.value), 0)
   const winRate = deals.length ? Math.round((wonDeals.length / deals.length) * 100) : 0
+
+  function nextActionLabel(proj: { nodes: Array<{ id: string; data: { status: string; label: string } }>; edges: Array<{ source: string; target: string }> }) {
+    const prevMap: Record<string, string[]> = {}
+    proj.edges.forEach(e => {
+      if (!prevMap[e.target]) prevMap[e.target] = []
+      prevMap[e.target].push(e.source)
+    })
+    const byId = Object.fromEntries(proj.nodes.map(n => [n.id, n]))
+    for (const node of proj.nodes) {
+      if (node.data.status !== 'pending') continue
+      const preds = prevMap[node.id] ?? []
+      if (preds.every(pid => byId[pid]?.data?.status === 'done')) return node.data.label
+    }
+    return null
+  }
 
   // Monthly revenue (last 6 months)
   const now = new Date()
@@ -193,6 +212,7 @@ export default function DashboardClient({ contacts, deals, activities, roadmapPr
                   const total = proj.nodes.length
                   const done  = proj.nodes.filter(n => n.data?.status === 'done').length
                   const pct   = total > 0 ? Math.round((done / total) * 100) : 0
+                  const next  = nextActionLabel(proj)
                   return (
                     <div key={proj.id}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -202,6 +222,12 @@ export default function DashboardClient({ contacts, deals, activities, roadmapPr
                       <div style={{ background: 'var(--surface-3)', borderRadius: 99, height: 5, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${pct}%`, background: 'var(--gold)', borderRadius: 99, transition: 'width 0.4s ease' }} />
                       </div>
+                      {next && (
+                        <div style={{ marginTop: 7, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--gold)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>★ Siguiente</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{next}</span>
+                        </div>
+                      )}
                     </div>
                   )
                 })}

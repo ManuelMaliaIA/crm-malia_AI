@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, Mail, Phone, FileText, Send, PhoneCall,
   CheckSquare, Calendar, Globe, Briefcase, User, ExternalLink,
-  MapPin, Share2, Star, AlertCircle, Wifi, WifiOff, UtensilsCrossed,
+  MapPin, Share2, Star, AlertCircle, Wifi, WifiOff, UtensilsCrossed, Map,
 } from 'lucide-react'
+import Link from 'next/link'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { createClient } from '@/lib/supabase/client'
@@ -24,7 +25,12 @@ type Activity = {
   id: string; type: string; title: string; body: string | null
   created_at: string; completed: boolean; due_at: string | null
 }
-type Deal = { id: string; title: string; value: number; stage: string; probability: number }
+type Deal = { id: string; title: string; value: number; stage: string; probability: number; prospecto_id?: number | null }
+type RoadmapProject = {
+  id: string; name: string
+  nodes: Array<{ id: string; data: { status: string; label: string } }>
+  edges: Array<{ source: string; target: string }>
+}
 type Prospeccion = {
   id: string; created_at: string; contact_id: string | null; user_id: string
   tipo: string | null; direccion: string | null; telefono_local: string | null
@@ -87,10 +93,26 @@ interface Props {
   activities: Activity[]
   deals: Deal[]
   prospeccion: Prospeccion | null
+  roadmapProjects: RoadmapProject[]
   userId: string
 }
 
-export default function ContactDetailClient({ contact, activities: initActs, deals, prospeccion, userId }: Props) {
+function nextActionLabel(proj: RoadmapProject): string | null {
+  const prevMap: Record<string, string[]> = {}
+  proj.edges.forEach(e => {
+    if (!prevMap[e.target]) prevMap[e.target] = []
+    prevMap[e.target].push(e.source)
+  })
+  const byId = Object.fromEntries(proj.nodes.map(n => [n.id, n]))
+  for (const node of proj.nodes) {
+    if (node.data.status !== 'pending') continue
+    const preds = prevMap[node.id] ?? []
+    if (preds.every(pid => byId[pid]?.data?.status === 'done')) return node.data.label
+  }
+  return null
+}
+
+export default function ContactDetailClient({ contact, activities: initActs, deals, prospeccion, roadmapProjects, userId }: Props) {
   const router = useRouter()
   const [activities, setActivities] = useState(initActs)
   const [tab, setTab] = useState<'note' | 'email' | 'call' | 'task'>('note')
@@ -373,6 +395,44 @@ export default function ContactDetailClient({ contact, activities: initActs, dea
                         </span>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Roadmap */}
+              {roadmapProjects.length > 0 && (
+                <div className="card">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Map size={11} /> Roadmap
+                    </div>
+                    <Link href="/roadmap" style={{ fontSize: 11, color: 'var(--gold)', textDecoration: 'none' }}>Ver →</Link>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {roadmapProjects.map(proj => {
+                      const total = proj.nodes.length
+                      const done  = proj.nodes.filter(n => n.data?.status === 'done').length
+                      const pct   = total > 0 ? Math.round((done / total) * 100) : 0
+                      const next  = nextActionLabel(proj)
+                      return (
+                        <div key={proj.id}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text-2)' }}>{proj.name}</span>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--gold)' }}>{pct}%</span>
+                          </div>
+                          <div style={{ background: 'var(--surface-3)', borderRadius: 99, height: 4, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: 'var(--gold)', borderRadius: 99, transition: 'width 0.4s ease' }} />
+                          </div>
+                          <div style={{ marginTop: 5, fontSize: 11, color: 'var(--text-3)' }}>{done}/{total} pasos completados</div>
+                          {next && (
+                            <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', background: 'var(--surface-3)', borderRadius: 5, borderLeft: '2px solid var(--gold)' }}>
+                              <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>★ Sig.</span>
+                              <span style={{ fontSize: 11.5, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{next}</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
