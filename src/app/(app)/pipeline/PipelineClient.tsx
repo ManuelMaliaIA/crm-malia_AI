@@ -35,6 +35,13 @@ type Deal = {
   prospecto?: { id: number; nombre: string } | null
 }
 
+type RoadmapProject = {
+  id: string
+  name: string
+  prospecto_id: number | null
+  nodes: Array<{ data: { status: string } }>
+}
+
 const STAGES = [
   { key: 'prospecting', label: 'Prospección', color: '#5e5e5e' },
   { key: 'proposal',    label: 'Propuesta',   color: '#e0aa4a' },
@@ -56,13 +63,17 @@ function dealAnnualValue(d: Deal) {
   return Number(d.value) || 0
 }
 
-function DealCardDisplay({ deal, isDragging = false }: { deal: Deal; isDragging?: boolean }) {
+function DealCardDisplay({ deal, roadmap, isDragging = false }: { deal: Deal; roadmap?: RoadmapProject; isDragging?: boolean }) {
   const contact = deal.prospecto?.nombre
     ?? (deal.contacts ? `${deal.contacts.first_name} ${deal.contacts.last_name}` : deal.companies?.name)
 
   const setup = Number(deal.setup_fee) || 0
   const monthly = Number(deal.monthly_fee) || 0
   const hasNewFields = setup > 0 || monthly > 0
+
+  const roadmapTotal = roadmap?.nodes.length ?? 0
+  const roadmapDone  = roadmap?.nodes.filter(n => n.data.status === 'done').length ?? 0
+  const roadmapPct   = roadmapTotal > 0 ? Math.round((roadmapDone / roadmapTotal) * 100) : 0
 
   return (
     <div className={`deal-card ${isDragging ? 'dragging' : ''}`}>
@@ -78,11 +89,23 @@ function DealCardDisplay({ deal, isDragging = false }: { deal: Deal; isDragging?
           <span className="deal-value">{fmt(Number(deal.value))}</span>
         )}
       </div>
+      {roadmap && roadmapTotal > 0 && (
+        <div style={{ marginTop: 10, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-4)' }}>Roadmap</span>
+            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)' }}>{roadmapPct}%</span>
+          </div>
+          <div style={{ background: 'var(--border)', borderRadius: 99, height: 3, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${roadmapPct}%`, background: 'var(--gold)', borderRadius: 99, transition: 'width 0.4s ease' }} />
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 3 }}>{roadmapDone}/{roadmapTotal} pasos</div>
+        </div>
+      )}
     </div>
   )
 }
 
-function DraggableDeal({ deal, onDelete, onEdit }: { deal: Deal; onDelete: (id: string) => void; onEdit: (deal: Deal) => void }) {
+function DraggableDeal({ deal, roadmap, onDelete, onEdit }: { deal: Deal; roadmap?: RoadmapProject; onDelete: (id: string) => void; onEdit: (deal: Deal) => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: deal.id })
   const [hovered, setHovered] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -125,7 +148,7 @@ function DraggableDeal({ deal, onDelete, onEdit }: { deal: Deal; onDelete: (id: 
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <DealCardDisplay deal={deal} />
+      <DealCardDisplay deal={deal} roadmap={roadmap} />
       {hovered && !isDragging && (
         <div
           onPointerDown={e => e.stopPropagation()}
@@ -340,7 +363,7 @@ function EditDealModal({ deal, prospectos, onClose, onSave }: {
   )
 }
 
-export default function PipelineClient({ deals: initial, prospectos = [] }: { deals: Deal[]; prospectos?: Array<{ id: number; nombre: string }>; userId?: string }) {
+export default function PipelineClient({ deals: initial, prospectos = [], roadmapProjects = [] }: { deals: Deal[]; prospectos?: Array<{ id: number; nombre: string }>; roadmapProjects?: RoadmapProject[]; userId?: string }) {
   const [deals, setDeals] = useState(initial)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [overStageKey, setOverStageKey] = useState<string | null>(null)
@@ -441,6 +464,7 @@ export default function PipelineClient({ deals: initial, prospectos = [] }: { de
                         <DraggableDeal
                           key={deal.id}
                           deal={deal}
+                          roadmap={roadmapProjects.find(r => r.prospecto_id != null && deal.prospecto_id != null && Number(r.prospecto_id) === Number(deal.prospecto_id))}
                           onDelete={handleDelete}
                           onEdit={setEditDeal}
                         />
@@ -461,7 +485,7 @@ export default function PipelineClient({ deals: initial, prospectos = [] }: { de
             </div>
 
             <DragOverlay dropAnimation={null}>
-              {activeDeal && <DealCardDisplay deal={activeDeal} isDragging />}
+              {activeDeal && <DealCardDisplay deal={activeDeal} isDragging roadmap={roadmapProjects.find(r => r.prospecto_id != null && activeDeal.prospecto_id != null && Number(r.prospecto_id) === Number(activeDeal.prospecto_id))} />}
             </DragOverlay>
           </DndContext>
         </div>

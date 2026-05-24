@@ -10,6 +10,7 @@ interface Props {
   contacts: Array<{ id: string; status: string; created_at: string }>
   deals: Array<{ id: string; title: string; value: number; setup_fee: number; monthly_fee: number; stage: string; close_date: string | null; created_at: string }>
   activities: Array<{ id: string; type: string; title: string; created_at: string; completed: boolean; due_at: string | null }>
+  roadmapProjects: Array<{ id: string; name: string; nodes: Array<{ data: { status: string } }> }>
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -43,7 +44,7 @@ function SparkLine({ values }: { values: number[] }) {
   )
 }
 
-export default function DashboardClient({ contacts, deals, activities }: Props) {
+export default function DashboardClient({ contacts, deals, activities, roadmapProjects }: Props) {
   const activeDeals = deals.filter(d => !['closed_won', 'closed_lost'].includes(d.stage))
   const wonDeals = deals.filter(d => d.stage === 'closed_won')
   const totalRevenue = wonDeals.reduce((s, d) => s + Number(d.value), 0)
@@ -174,6 +175,39 @@ export default function DashboardClient({ contacts, deals, activities }: Props) 
               </div>
             </div>
           </div>
+
+          {/* Roadmap progress */}
+          {roadmapProjects.length > 0 && (
+            <div className="card" style={{ marginTop: 20 }}>
+              <div className="card-head">
+                <div>
+                  <div className="card-title">Progreso de proyectos</div>
+                  <div className="card-sub">Roadmap activo</div>
+                </div>
+                <Link href="/roadmap" style={{ textDecoration: 'none' }}>
+                  <button className="btn-ghost" style={{ fontSize: 12 }}>Ver roadmap</button>
+                </Link>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {roadmapProjects.map(proj => {
+                  const total = proj.nodes.length
+                  const done  = proj.nodes.filter(n => n.data?.status === 'done').length
+                  const pct   = total > 0 ? Math.round((done / total) * 100) : 0
+                  return (
+                    <div key={proj.id}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>{proj.name}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold)' }}>{pct}% · {done}/{total} pasos</span>
+                      </div>
+                      <div style={{ background: 'var(--surface-3)', borderRadius: 99, height: 5, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, background: 'var(--gold)', borderRadius: 99, transition: 'width 0.4s ease' }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Bottom row */}
           <div className="grid-2" style={{ marginTop: 20 }}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import {
   ReactFlow, Background, Controls, MiniMap, ReactFlowProvider,
   addEdge, useNodesState, useEdgesState, useReactFlow,
@@ -29,7 +29,8 @@ type NodeData = {
 
 type FlowNode = { id: string; type: string; position: { x: number; y: number }; data: NodeData }
 type FlowEdge = { id: string; source: string; target: string; [key: string]: unknown }
-type Project  = { id: string; name: string; nodes: FlowNode[]; edges: FlowEdge[] }
+type Project  = { id: string; name: string; nodes: FlowNode[]; edges: FlowEdge[]; prospecto_id?: number | null }
+type Prospecto = { id: number; nombre: string }
 
 /* ─── Constants ─────────────────────────────────────────── */
 const STATUS_CFG: Record<NodeStatus, { bg: string; border: string; accent: string; label: string }> = {
@@ -146,10 +147,11 @@ function findNextActionId(nodes: FlowNode[], edges: FlowEdge[]): string | null {
 
 /* ─── RoadmapFlowInner ───────────────────────────────────── */
 function RoadmapFlowInner({
-  project, onProjectChange, onEditNode, onCreateAt, searchQuery,
+  project, onProjectChange, onPositionChange, onEditNode, onCreateAt, searchQuery,
 }: {
   project: Project
   onProjectChange: (updater: (prev: Project[]) => Project[]) => void
+  onPositionChange: (updater: (prev: Project[]) => Project[]) => void
   onEditNode: (id: string) => void
   onCreateAt: (pos: { x: number; y: number }) => void
   searchQuery: string
@@ -192,13 +194,13 @@ function RoadmapFlowInner({
   }, [project.id, onProjectChange, setEdges])
 
   const onNodeDragStop = useCallback((_: any, node: any) => {
-    onProjectChange(prev => prev.map(p =>
+    onPositionChange(prev => prev.map(p =>
       p.id !== project.id ? p : {
         ...p,
         nodes: p.nodes.map(n => n.id !== node.id ? n : { ...n, position: node.position }),
       }
     ))
-  }, [project.id, onProjectChange])
+  }, [project.id, onPositionChange])
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   const stats = useMemo(() => {
@@ -316,14 +318,16 @@ function StatusPanel({ nodes, onStatusChange }: {
 }
 
 /* ─── ProjectSidebar ─────────────────────────────────────── */
-function ProjectSidebar({ projects, activeId, onSelect, onCreate, onDelete, onRename, onDuplicate }: {
+function ProjectSidebar({ projects, activeId, prospectos, onSelect, onCreate, onDelete, onRename, onDuplicate, onLinkProspecto }: {
   projects: Project[]
   activeId: string | null
+  prospectos: Prospecto[]
   onSelect: (id: string) => void
   onCreate: (name: string) => void
   onDelete: (id: string) => void
   onRename: (id: string, name: string) => void
   onDuplicate: (id: string) => void
+  onLinkProspecto: (projectId: string, prospectoId: number | null) => void
 }) {
   const [collapsed, setCollapsed]   = useState(false)
   const [adding, setAdding]         = useState(false)
@@ -369,7 +373,8 @@ function ProjectSidebar({ projects, activeId, onSelect, onCreate, onDelete, onRe
           const isRenaming = renamingId === p.id
           const showActions = (isActive || isHovered) && !isRenaming
           return (
-            <div key={p.id}
+            <div key={p.id}>
+            <div
               onClick={() => { if (!isRenaming) onSelect(p.id) }}
               onMouseEnter={() => setHoveredId(p.id)}
               onMouseLeave={() => setHoveredId(null)}
@@ -396,6 +401,21 @@ function ProjectSidebar({ projects, activeId, onSelect, onCreate, onDelete, onRe
                   )}
                 </>
               )}
+            </div>
+            {isActive && prospectos.length > 0 && (
+              <div style={{ padding: '0 8px 8px 14px' }} onClick={e => e.stopPropagation()}>
+                <select
+                  value={p.prospecto_id ?? ''}
+                  onChange={e => onLinkProspecto(p.id, e.target.value ? Number(e.target.value) : null)}
+                  style={{ width: '100%', background: '#18181b', border: '1px solid #27272a', borderRadius: 5, padding: '4px 6px', color: p.prospecto_id ? '#a1a1aa' : '#52525b', fontSize: 11, outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="">→ Sin cliente vinculado</option>
+                  {prospectos.map(pr => (
+                    <option key={pr.id} value={pr.id}>{pr.nombre}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             </div>
           )
         })}
@@ -517,12 +537,13 @@ function EditNodeModal({ node, onClose, onSave }: {
 }
 
 /* ─── Main Client ────────────────────────────────────────── */
-export default function RoadmapClient({ projects: initial, userId }: { projects: Project[]; userId: string }) {
-  const [projects, setProjects]         = useState<Project[]>(initial)
-  const [activeId, setActiveId]         = useState<string | null>(initial[0]?.id ?? null)
-  const [showAddModal, setShowAddModal] = useState(false)
+export default function RoadmapClient({ projects: initial, prospectos, userId }: { projects: Project[]; prospectos: Prospecto[]; userId: string }) {
+  const [projects, setProjects]           = useState<Project[]>(initial)
+  const [activeId, setActiveId]           = useState<string | null>(initial[0]?.id ?? null)
+  const [showAddModal, setShowAddModal]   = useState(false)
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery]   = useState('')
+  const [searchQuery, setSearchQuery]     = useState('')
+  const dragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const activeProject = projects.find(p => p.id === activeId) ?? null
   const editingNode   = editingNodeId ? activeProject?.nodes.find(n => n.id === editingNodeId) : null
@@ -533,6 +554,7 @@ export default function RoadmapClient({ projects: initial, userId }: { projects:
     await (sb as any).from('roadmap_projects').upsert({
       id: project.id, user_id: userId,
       name: project.name, nodes: project.nodes, edges: project.edges,
+      prospecto_id: project.prospecto_id ?? null,
     })
   }
 
@@ -550,6 +572,23 @@ export default function RoadmapClient({ projects: initial, userId }: { projects:
       return next
     })
   }
+
+  function updateProjectsDebounced(updater: (prev: Project[]) => Project[]) {
+    setProjects(prev => {
+      const next = updater(prev)
+      if (dragTimerRef.current) clearTimeout(dragTimerRef.current)
+      const changed = next.find(p => p.id === activeId)
+      if (changed) {
+        const snapshot = { ...changed, nodes: [...changed.nodes] }
+        dragTimerRef.current = setTimeout(() => persistProject(snapshot), 600)
+      }
+      return next
+    })
+  }
+
+  const handleLinkProspecto = useCallback((projectId: string, prospectoId: number | null) => {
+    updateProjects(prev => prev.map(p => p.id !== projectId ? p : { ...p, prospecto_id: prospectoId }), projectId)
+  }, [activeId])
 
   const handleAddNode = useCallback(({ label, description, status }: { label: string; description: string; status: NodeStatus }) => {
     const id = `n-${Date.now()}`
@@ -639,7 +678,7 @@ export default function RoadmapClient({ projects: initial, userId }: { projects:
   }, [projects, userId])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#09090b', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#09090b', overflow: 'hidden' }}>
       {/* Header */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', height: 50, background: '#0c0c0e', borderBottom: '1px solid #1c1c1f', flexShrink: 0, gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -669,11 +708,13 @@ export default function RoadmapClient({ projects: initial, userId }: { projects:
         <ProjectSidebar
           projects={projects}
           activeId={activeId}
+          prospectos={prospectos}
           onSelect={setActiveId}
           onCreate={handleCreateProject}
           onDelete={handleDeleteProject}
           onRename={handleRenameProject}
           onDuplicate={handleDuplicateProject}
+          onLinkProspecto={handleLinkProspecto}
         />
 
         <main style={{ flex: 1, overflow: 'hidden' }}>
@@ -683,6 +724,7 @@ export default function RoadmapClient({ projects: initial, userId }: { projects:
                 key={activeProject.id}
                 project={activeProject}
                 onProjectChange={updateProjects}
+                onPositionChange={updateProjectsDebounced}
                 onEditNode={setEditingNodeId}
                 onCreateAt={handleCreateNodeAt}
                 searchQuery={searchQuery}

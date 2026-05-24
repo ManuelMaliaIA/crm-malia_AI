@@ -9,12 +9,12 @@ export default async function RoadmapPage() {
   if (!user) return null
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  const { data: projects } = await (supabase as any)
-    .from('roadmap_projects')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: true })
+  const sb = supabase as any
+  const [{ data: projects }, { data: prospectos }] = await Promise.all([
+    sb.from('roadmap_projects').select('*').eq('user_id', user.id).order('created_at', { ascending: true }),
+    sb.from('prospectos').select('id, nombre').order('nombre'),
+  ])
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
-  return <RoadmapClient projects={projects ?? []} userId={user.id} />
+  return <RoadmapClient projects={projects ?? []} prospectos={prospectos ?? []} userId={user.id} />
 }
