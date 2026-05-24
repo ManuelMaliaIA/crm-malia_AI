@@ -30,6 +30,15 @@ export default function ActivitiesClient({ activities: initial }: { activities: 
   const [activities, setActivities] = useState(initial)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<string>('all')
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set())
+
+  function toggleNote(id: string) {
+    setExpandedNotes(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
 
   const filtered = activities.filter(a => {
     if (filter === 'pending') return !a.completed && a.due_at
@@ -84,14 +93,31 @@ export default function ActivitiesClient({ activities: initial }: { activities: 
                           <div className="timeline-title" style={{ textDecoration: act.completed ? 'line-through' : 'none', opacity: act.completed ? 0.5 : 1 }}>
                             {act.title}
                           </div>
-                          {act.body && <div className="timeline-body">{act.body}</div>}
-                          <div className="timeline-time">
-                            {TYPE_LABELS[act.type]}
-                            {act.contacts && ` · ${act.contacts.first_name} ${act.contacts.last_name}`}
-                            {act.deals && ` · ${act.deals.title}`}
-                            {' · '}
-                            {format(parseISO(act.created_at), "d MMM yyyy", { locale: es })}
+                          <div className="timeline-time" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
+                            <span>{TYPE_LABELS[act.type]}</span>
+                            {act.contacts && <span>· {act.contacts.first_name} {act.contacts.last_name}</span>}
+                            {act.deals && <span>· {act.deals.title}</span>}
+                            <span>· {format(parseISO(act.created_at), "d MMM yyyy", { locale: es })}</span>
+                            {act.body && (
+                              <button
+                                onClick={() => toggleNote(act.id)}
+                                style={{
+                                  display: 'inline-flex', alignItems: 'center', gap: 3,
+                                  fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 4,
+                                  border: '1px solid var(--border)',
+                                  background: expandedNotes.has(act.id) ? 'var(--surface-2)' : 'transparent',
+                                  color: expandedNotes.has(act.id) ? 'var(--text-2)' : 'var(--text-4)',
+                                  cursor: 'pointer', transition: 'all .1s ease',
+                                }}
+                              >
+                                <FileText size={9} strokeWidth={2} />
+                                Nota
+                              </button>
+                            )}
                           </div>
+                          {act.body && expandedNotes.has(act.id) && (
+                            <div className="timeline-body">{act.body}</div>
+                          )}
                         </div>
                         {act.type === 'task' && (
                           <button
