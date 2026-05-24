@@ -66,17 +66,17 @@ function CustomNode({ data, selected }: { data: NodeData; selected?: boolean }) 
       onDoubleClick={e => { e.stopPropagation(); data.onEdit?.() }}
       style={{
         background: cfg.bg,
-        border: `1.5px solid ${data.isNextAction ? '#7c3aed' : selected ? '#6366f1' : cfg.border}`,
+        border: `1.5px solid ${data.isNextAction ? '#1A6FAA' : selected ? '#1A6FAA' : cfg.border}`,
         borderLeft: pColor ? `4px solid ${pColor}` : undefined,
         borderRadius: 10, minWidth: 175, maxWidth: 220,
         boxShadow: data.isNextAction
-          ? '0 0 0 2px #09090b, 0 0 0 4px #7c3aed, 0 12px 40px rgba(124,58,237,0.3)'
-          : selected ? '0 0 0 2px #6366f1' : '0 2px 14px rgba(0,0,0,0.5)',
+          ? '0 0 0 2px #09090b, 0 0 0 4px #1A6FAA, 0 12px 40px rgba(26,111,170,0.3)'
+          : selected ? '0 0 0 2px #1A6FAA' : '0 2px 14px rgba(0,0,0,0.5)',
         cursor: 'grab', position: 'relative', userSelect: 'none', transition: 'box-shadow 0.2s',
       }}
     >
       {data.isNextAction && (
-        <div style={{ position: 'absolute', top: -22, left: '50%', transform: 'translateX(-50%)', background: '#7c3aed', color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 10px', borderRadius: 20, whiteSpace: 'nowrap', letterSpacing: '0.08em' }}>
+        <div style={{ position: 'absolute', top: -22, left: '50%', transform: 'translateX(-50%)', background: '#1A6FAA', color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 10px', borderRadius: 20, whiteSpace: 'nowrap', letterSpacing: '0.08em' }}>
           ★ SIGUIENTE ACCIÓN
         </div>
       )}
@@ -204,10 +204,10 @@ function RoadmapFlowInner({
           <span style={{ color: '#52525b', fontSize: 11 }}>
             <strong style={{ color: '#d4d4d8' }}>{stats.done}/{stats.total}</strong> completados
           </span>
-          <span style={{ color: '#8b5cf6', fontWeight: 700, fontSize: 11 }}>{stats.pct}%</span>
+          <span style={{ color: '#1A6FAA', fontWeight: 700, fontSize: 11 }}>{stats.pct}%</span>
         </div>
         <div style={{ background: '#18181b', borderRadius: 99, height: 3, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${stats.pct}%`, background: 'linear-gradient(90deg, #7c3aed, #6366f1)', borderRadius: 99, transition: 'width 0.4s ease' }} />
+          <div style={{ height: '100%', width: `${stats.pct}%`, background: 'linear-gradient(90deg, #1A6FAA, #1A6FAA)', borderRadius: 99, transition: 'width 0.4s ease' }} />
         </div>
       </div>
       <div style={{ flex: 1 }}>
@@ -341,7 +341,7 @@ function ProjectSidebar({ projects, activeId, onSelect, onCreate, onDelete, onRe
       <button onClick={() => setCollapsed(false)} style={iconBtn}>›</button>
       {projects.map(p => (
         <div key={p.id} onClick={() => onSelect(p.id)} title={p.name}
-          style={{ width: 6, height: 6, borderRadius: '50%', cursor: 'pointer', background: p.id === activeId ? '#7c3aed' : '#27272a' }} />
+          style={{ width: 6, height: 6, borderRadius: '50%', cursor: 'pointer', background: p.id === activeId ? '#1A6FAA' : '#27272a' }} />
       ))}
     </div>
   )
@@ -363,14 +363,14 @@ function ProjectSidebar({ projects, activeId, onSelect, onCreate, onDelete, onRe
               onClick={() => { if (!isRenaming) onSelect(p.id) }}
               onMouseEnter={() => setHoveredId(p.id)}
               onMouseLeave={() => setHoveredId(null)}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 8px 8px 12px', background: isActive ? '#18181b' : 'transparent', borderLeft: `2px solid ${isActive ? '#7c3aed' : 'transparent'}`, cursor: 'pointer', transition: 'background 0.12s' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 8px 8px 12px', background: isActive ? '#18181b' : 'transparent', borderLeft: `2px solid ${isActive ? '#1A6FAA' : 'transparent'}`, cursor: 'pointer', transition: 'background 0.12s' }}
             >
               {isRenaming ? (
                 <input autoFocus value={renameValue} onChange={e => setRenameValue(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null) }}
                   onBlur={commitRename}
                   onClick={e => e.stopPropagation()}
-                  style={{ flex: 1, background: '#27272a', border: '1px solid #7c3aed', borderRadius: 4, padding: '2px 6px', color: '#fafafa', fontSize: 12, outline: 'none', minWidth: 0 }}
+                  style={{ flex: 1, background: '#27272a', border: '1px solid #1A6FAA', borderRadius: 4, padding: '2px 6px', color: '#fafafa', fontSize: 12, outline: 'none', minWidth: 0 }}
                 />
               ) : (
                 <span style={{ flex: 1, fontSize: 12.5, color: isActive ? '#fafafa' : '#71717a', fontWeight: isActive ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -398,7 +398,7 @@ function ProjectSidebar({ projects, activeId, onSelect, onCreate, onDelete, onRe
               placeholder="Nombre…"
               style={{ flex: 1, background: '#18181b', border: '1px solid #27272a', borderRadius: 6, padding: '6px 8px', color: '#fafafa', fontSize: 12, outline: 'none', minWidth: 0 }}
             />
-            <button onClick={handleCreate} style={{ ...iconBtn, color: '#7c3aed', fontSize: 16 }}>✓</button>
+            <button onClick={handleCreate} style={{ ...iconBtn, color: '#1A6FAA', fontSize: 16 }}>✓</button>
           </div>
         ) : (
           <button onClick={() => setAdding(true)}
@@ -446,7 +446,7 @@ function NodeModal({ onClose, onAdd }: {
         </select>
         <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
           <button type="button" onClick={onClose} style={{ flex: 1, padding: '9px 0', background: '#18181b', border: '1px solid #27272a', borderRadius: 6, color: '#71717a', cursor: 'pointer', fontSize: 13 }}>Cancelar</button>
-          <button type="submit" style={{ flex: 2, padding: '9px 0', background: '#7c3aed', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>Añadir</button>
+          <button type="submit" style={{ flex: 2, padding: '9px 0', background: '#1A6FAA', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>Añadir</button>
         </div>
       </form>
     </div>
@@ -499,7 +499,7 @@ function EditNodeModal({ node, onClose, onSave }: {
           style={{ ...inp, resize: 'vertical', minHeight: 90, lineHeight: 1.5 }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
           <button type="button" onClick={onClose} style={{ flex: 1, padding: '9px 0', background: '#18181b', border: '1px solid #27272a', borderRadius: 7, color: '#71717a', cursor: 'pointer', fontSize: 13 }}>Cancelar</button>
-          <button type="submit" style={{ flex: 2, padding: '9px 0', background: '#7c3aed', border: 'none', borderRadius: 7, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>Guardar</button>
+          <button type="submit" style={{ flex: 2, padding: '9px 0', background: '#1A6FAA', border: 'none', borderRadius: 7, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>Guardar</button>
         </div>
       </form>
     </div>
@@ -647,7 +647,7 @@ export default function RoadmapClient({ projects: initial, userId }: { projects:
           />
           <button
             onClick={() => setShowAddModal(true)}
-            style={{ background: '#7c3aed', border: 'none', borderRadius: 7, padding: '7px 14px', color: '#fff', cursor: 'pointer', fontSize: 12.5, fontWeight: 600 }}
+            style={{ background: '#1A6FAA', border: 'none', borderRadius: 7, padding: '7px 14px', color: '#fff', cursor: 'pointer', fontSize: 12.5, fontWeight: 600 }}
           >
             + Paso
           </button>
