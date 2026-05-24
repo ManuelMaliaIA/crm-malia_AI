@@ -90,8 +90,18 @@ function CustomNode({ data, selected }: { data: NodeData; selected?: boolean }) 
         {data.description && (
           <div style={{ color: '#52525b', fontSize: 10.5, marginTop: 5, marginLeft: 14, lineHeight: 1.4 }}>{data.description}</div>
         )}
-        <div style={{ marginTop: 8, marginLeft: 14 }}>
+        <div style={{ marginTop: 8, marginLeft: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 9.5, color: cfg.accent, fontWeight: 600 }}>{cfg.label}</span>
+          {data.notes && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 3,
+              fontSize: 8.5, fontWeight: 700, letterSpacing: '0.04em',
+              padding: '1px 5px', borderRadius: 3,
+              background: 'rgba(26,111,170,0.18)',
+              color: '#3b9fd8',
+              border: '1px solid rgba(26,111,170,0.35)',
+            }}>✎ NOTA</span>
+          )}
         </div>
       </div>
       <Handle type="source" position={Position.Right} style={{ background: '#27272a', border: '2px solid #3f3f46', width: 10, height: 10 }} />
